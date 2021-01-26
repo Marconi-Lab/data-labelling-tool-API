@@ -21,9 +21,9 @@ class DataSetTestCase(unittest.TestCase):
     def test_dataset_creation(self):
         """Test if API can create a dataset. (POST request)"""
         res = self.client().post('/datasets/', data=self.dataset)
+        print("Res: ",res)
         self.assertEqual(res.status_code, 201)
-        self.assertIn(3, len(res.data.classes))
-        self.assetIn("Cervical Infection", str(res.data))
+        self.assertIn("Cervical Infection", str(res.data))
 
     def test_api_can_get_all_datasets(self):
         """Test if API can get all datasets. (GET request)"""
@@ -38,7 +38,7 @@ class DataSetTestCase(unittest.TestCase):
         res = self.client().post('/datasets/', data=self.dataset)
         self.assertEqual(res.status_code, 201)
         json_res = json.loads(res.data.decode('utf-8').replace("'", "\""))
-        result = self.client.get('/dataseta/{}'.format(json_res['id']))
+        result = self.client.get('/datasets/{}'.format(json_res['id']))
         self.assertEqual(result.status_code, 200)
         self.assertIn("Cervical Infection", str(result.data))
 

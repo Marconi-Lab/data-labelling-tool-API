@@ -12,9 +12,10 @@ class Datasets(db.Model):
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
 
-    def __init__(self, name):
+    def __init__(self, name, classes):
         """initialize with name."""
         self.name = name
+        self.classes = classes
 
     def save(self):
         db.session.add(self)

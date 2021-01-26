@@ -11,8 +11,8 @@ from flask import request, jsonify, abort
 db = SQLAlchemy()
 
 def create_app(config_name):
-    from api.models import Dataset
-    
+    from application.models import Datasets
+
     app = FlaskAPI(__name__, instance_relative_config=True)
     app.config.from_object(app_config[config_name])
     app.config.from_pyfile('config.py')
@@ -20,20 +20,22 @@ def create_app(config_name):
     db.init_app(app)
 
     @app.route('/datasets/', methods=["POST", "GET"])
-    def bucketlists():
+    def datasets():
         if request.method == "POST":
-            data = request.data
-            if data.name and data.classes:
-                dataset = Dataset(name=data.name, classes=data.classes)
+            name = str(request.data.get("name", ''))
+            classes = request.data.getlist("classes")
+
+            if name and classes:
+                dataset = Datasets(name=name, classes=classes)
                 dataset.save()
                 response = jsonify({
                   "id": dataset.id,
                   "name": dataset.name,
-                  "classes": dataset.classes
+                  "classes": dataset.classes,
                   "date_created": dataset.date_created,
                   "date_modified": dataset.date_modified  
                 })
-                resoponse.status_code = 201
+                response.status_code = 201
                 return response
         else:
             # GET request
@@ -44,7 +46,7 @@ def create_app(config_name):
                 obj = {
                     "id": dataset.id,
                     "name": dataset.name,
-                    "classes": dataset.classes
+                    "classes": dataset.classes,
                     "date_created": dataset.date_created,
                     "date_modified": dataset.date_modified 
                 }
