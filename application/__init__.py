@@ -3,6 +3,9 @@ from flask_sqlalchemy import SQLAlchemy
 
 from instance.config import app_config
 
+from dotenv import load_dotenv
+load_dotenv()
+
 db = SQLAlchemy()
 
 def create_app(config_name):
