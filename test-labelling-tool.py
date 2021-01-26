@@ -38,7 +38,7 @@ class DataSetTestCase(unittest.TestCase):
         res = self.client().post('/datasets/', data=self.dataset)
         self.assertEqual(res.status_code, 201)
         json_res = json.loads(res.data.decode('utf-8').replace("'", "\""))
-        result = self.client.get('/datasets/{}'.format(json_res['id']))
+        result = self.client().get('/datasets/{}'.format(json_res['id']))
         self.assertEqual(result.status_code, 200)
         self.assertIn("Cervical Infection", str(result.data))
 
@@ -46,8 +46,8 @@ class DataSetTestCase(unittest.TestCase):
         """Test if API can edit and existing dataset. (PUT request)"""
         res = self.client().post('/datasets/', data=self.dataset)
         self.assertEqual(res.status_code, 201)
-        res = self.client().put('/datasets/1', data={"name": "COVID Ultrasound", 'classes': ["Positive", "Negative", "Not Sure"]})
-        self.assertEqual(res.status_code, 200)
+        put_res = self.client().put('/datasets/1', data={"name": "COVID Ultrasound", 'classes': ["Positive", "Negative", "Not Sure"]})
+        self.assertEqual(put_res.status_code, 200)
         results = self.client().get('/datasets/1')
         self.assertIn('COVID Ultrasound', str(results.data))
 

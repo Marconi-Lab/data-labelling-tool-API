@@ -54,4 +54,45 @@ def create_app(config_name):
             response = jsonify(results)
             response.status_code = 200
             return response
+
+
+    @app.route('/datasets/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+    def dataset_manipulation(id, **kwargs):
+
+        dataset = Datasets.query.filter_by(id=id).first()
+
+        if not dataset:
+            abort(404)
+
+        if request.method == "DELETE":
+            dataset.delete()
+            return {
+                "message": "dataset {} deleted successfully".format(id)
+            }, 200
+        elif request.method == "PUT":
+            name = str(request.data.get("name", ""))
+            classes = request.data.getlist("classes")
+            dataset.name = name
+            dataset.classes = classes
+            dataset.save()
+            response = jsonify({
+                "id": dataset.id,
+                "name": dataset.name,
+                "classes": dataset.classes,
+                "date_created": dataset.date_created,
+                "date_modified": dataset.date_modified
+            })
+            response.status_code = 200
+            return response
+        else:
+            # GET by ID
+            response = jsonify({
+                "id": dataset.id,
+                "name": dataset.name,
+                "classes": dataset.classes,
+                "date_created": dataset.date_created,
+                "date_modified": dataset.date_modified
+            })
+            response.status_code = 200
+            return response
     return app
