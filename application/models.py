@@ -26,7 +26,7 @@ class Datasets(db.Model):
         return Datasets.query.all()
 
     def delete(self):
-        db.session.delee(self)
+        db.session.delete(self)
         db.session.commit()
 
     def __repr__(self):
