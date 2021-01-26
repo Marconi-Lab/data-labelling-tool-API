@@ -11,6 +11,8 @@ from flask import request, jsonify, abort
 db = SQLAlchemy()
 
 def create_app(config_name):
+    from api.models import Dataset
+    
     app = FlaskAPI(__name__, instance_relative_config=True)
     app.config.from_object(app_config[config_name])
     app.config.from_pyfile('config.py')
@@ -34,4 +36,20 @@ def create_app(config_name):
                 resoponse.status_code = 201
                 return response
         else:
+            # GET request
+            datasets = Datasets.get_all()
+            results = []
+
+            for dataset in datasets:
+                obj = {
+                    "id": dataset.id,
+                    "name": dataset.name,
+                    "classes": dataset.classes
+                    "date_created": dataset.date_created,
+                    "date_modified": dataset.date_modified 
+                }
+                results.append(obj)
+            response = jsonify(results)
+            response.status_code = 200
+            return response
     return app
