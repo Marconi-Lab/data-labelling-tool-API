@@ -1,15 +1,16 @@
 from application import db
 
 
-class DataSets(db.Model):
+class Datasets(db.Model):
     """This class represents the datasets table"""
     
     __tablename__ = "datasets"
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
-    classes = db.Column(db.ARRAY(String))
+    classes = db.Column(db.ARRAY(db.String))
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
-    date_modified = db.column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
+    date_modified = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
 
     def __init__(self, name):
         """initialize with name."""
@@ -21,7 +22,7 @@ class DataSets(db.Model):
 
     @staticmethod
     def get_all():
-        return Bucketlist.query.all()
+        return Datasets.query.all()
 
     def delete(self):
         db.session.delee(self)
