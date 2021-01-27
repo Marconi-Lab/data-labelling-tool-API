@@ -119,6 +119,7 @@ class Item(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     dataset_id = db.Column(db.Integer, db.ForeignKey(Datasets.id, ondelete="CASCADE"))
+    name = db.Column(db.Strin(255))
     label = db.Column(db.String(255))
     comment = db.Column(db.String(255))
     labelled = db.Column(db.Boolean())
@@ -146,3 +147,7 @@ class Item(db.Model):
         """Deletes the given data item"""
         db.session.delete(self)
         db.session.commit()
+
+    def __repr__(self):
+        """Return a representation of a data item instance"""
+        return f"<Data Item: {self.name}"
