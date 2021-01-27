@@ -151,3 +151,31 @@ class Item(db.Model):
     def __repr__(self):
         """Return a representation of a data item instance"""
         return f"<Data Item: {self.name}"
+
+class Image(db.Model):
+    """This class an image belonging to a data item"""
+
+    __tablename__ = "images"
+
+    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer, db.ForeignKey(Item.id))
+    image_URL = db.Column(db.String)
+
+    def __init__(self, item_id, image_URL, name):
+        """Initialize image with data item ID and image URL"""
+        self.name = name
+        self.item_id = item_id
+        self.image_URL = image_URL
+
+    def save(self):
+        """Save an image"""
+        db.session.add(self)
+        db.session.commit()
+    @staticmethod
+    def get_all(item_id):
+        """Return all images in a data item"""
+        return Image.query.filter_by(item_id=item_id)
+
+    def __repr__(self):
+        """Return representation of an image"""
+        return f"Image {self.name}"
