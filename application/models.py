@@ -60,6 +60,27 @@ class User(db.Model, UserMixin):
         db.session.add(self)
         db.session.commit()
 
+    def generate_token(self, user_id):
+        """Generates access Token"""
+
+        try:
+            # set up a payload with an expiration time
+            payload = {
+                'exp': datetime.utcnow() + timedelta(minutes=5),
+                'iat': datetime.utcnow(),
+                'sub': user_id
+            }
+            # create the byte string token using the payload and the SECRET key
+            jwt_string = jwt.encode(
+                payload,
+                current_app.config.get("SECRET"),
+                algorithm='HS256'
+            )
+            return jwt_string
+        except Exception as e:
+            # return and error in string format if an exception occurs
+            return str(e)
+    
 # Define the Role data-model
 class Role(db.Model):
 
