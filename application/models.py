@@ -82,7 +82,7 @@ class User(db.Model, UserMixin):
             return str(e)
     
     @staticmethod
-     def decode_token(token):
+    def decode_token(token):
         """Decodes the access token from the Authorization header."""
         try:
             # try to decode the token using our SECRET variable
