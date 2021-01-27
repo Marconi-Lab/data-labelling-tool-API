@@ -137,4 +137,7 @@ class Item(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    
+    @staticmethod
+    def get_all(dataset_id):
+        """This method gets all the items in a dataset"""
+        return Item.query.filter_by(dataset_id=dataset_id)
