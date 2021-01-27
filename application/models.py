@@ -5,7 +5,7 @@ import jwt
 from flask import current_app
 from datetime import datetime, timedelta
 
-class Datasets(db.Model):
+class Dataset(db.Model):
     """This class represents the datasets table"""
     
     __tablename__ = "datasets"
@@ -27,7 +27,7 @@ class Datasets(db.Model):
 
     @staticmethod
     def get_all():
-        return Datasets.query.all()
+        return Dataset.query.all()
 
     def delete(self):
         db.session.delete(self)
@@ -118,7 +118,7 @@ class Item(db.Model):
     __tablename__ = "data_items"
 
     id = db.Column(db.Integer, primary_key=True)
-    dataset_id = db.Column(db.Integer, db.ForeignKey(Datasets.id, ondelete="CASCADE"))
+    dataset_id = db.Column(db.Integer, db.ForeignKey(Dataset.id, ondelete="CASCADE"))
     name = db.Column(db.Strin(255))
     label = db.Column(db.String(255))
     comment = db.Column(db.String(255))
@@ -158,7 +158,7 @@ class Image(db.Model):
     __tablename__ = "images"
 
     id = db.Column(db.Integer, primary_key=True)
-    item_id = db.Column(db.Integer, db.ForeignKey(Item.id))
+    item_id = db.Column(db.Integer, db.ForeignKey(Item.id, ondelete="CASCADE"))
     image_URL = db.Column(db.String)
 
     def __init__(self, item_id, image_URL, name):
@@ -179,3 +179,31 @@ class Image(db.Model):
     def __repr__(self):
         """Return representation of an image"""
         return f"Image {self.name}"
+
+class Assignment(db.Model):
+    """Class for dataset labelling assignments"""
+    __tablename__ = "assigniments"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id, ondelete="CASCADE"))
+    dataset_id = db.Column(db.Integer, db.ForeignKey(Datasets.id, ondelete="CASCADE"))
+
+    def __init__(self, user_id, dataset_id):
+        """Initialises an assignment with user_id and dataset_id"""
+        self.user_id = user_id
+        self.dataset_id = dataset_id
+
+    def save(self):
+        """Saves an assignment"""
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        """Deletes an assigment record"""
+        db.session.delete(self)
+        db.session.commit()
+
+    @staticmethod
+    def get_user_datasets(user_id):
+        """This method gets all the dataset that have been assigned to the given user"""
+        return Assignment.query.filter_by(user_id=user_id)
