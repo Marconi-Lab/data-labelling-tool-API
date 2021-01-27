@@ -12,7 +12,7 @@ from flask import request, jsonify, abort
 db = SQLAlchemy()
 
 def create_app(config_name):
-    from application.models import Datasets, User
+    from application.models import Dataset, User
 
     app = FlaskAPI(__name__, instance_relative_config=True)
     app.config.from_object(app_config[config_name])
