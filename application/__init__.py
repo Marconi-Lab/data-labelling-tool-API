@@ -7,16 +7,18 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from flask import request, jsonify, abort
+# from flask_user import UserManager
 
 db = SQLAlchemy()
 
 def create_app(config_name):
-    from application.models import Datasets
+    from application.models import Datasets, User
 
     app = FlaskAPI(__name__, instance_relative_config=True)
     app.config.from_object(app_config[config_name])
     app.config.from_pyfile('config.py')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    # user_manager = UserManager(app, db, User)
     db.init_app(app)
 
     @app.route('/datasets/', methods=["POST", "GET"])
@@ -95,4 +97,8 @@ def create_app(config_name):
             })
             response.status_code = 200
             return response
+    
+    from .auth import auth_blueprint
+    app.register_blueprint(auth_blueprint)
+    
     return app
