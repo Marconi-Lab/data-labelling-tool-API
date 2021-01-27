@@ -141,3 +141,8 @@ class Item(db.Model):
     def get_all(dataset_id):
         """This method gets all the items in a dataset"""
         return Item.query.filter_by(dataset_id=dataset_id)
+
+    def delete(self):
+        """Deletes the given data item"""
+        db.session.delete(self)
+        db.session.commit()
