@@ -21,14 +21,14 @@ def create_app(config_name):
     # user_manager = UserManager(app, db, User)
     db.init_app(app)
 
-    @app.route('/datasets/', methods=["POST", "GET"])
+    @app.route('/admin/datasets/', methods=["POST", "GET"])
     def datasets():
         if request.method == "POST":
             name = str(request.data.get("name", ''))
             classes = request.data.getlist("classes")
 
             if name and classes:
-                dataset = Datasets(name=name, classes=classes)
+                dataset = Dataset(name=name, classes=classes)
                 dataset.save()
                 response = jsonify({
                   "id": dataset.id,
@@ -41,7 +41,7 @@ def create_app(config_name):
                 return response
         else:
             # GET request
-            datasets = Datasets.get_all()
+            datasets = Dataset.get_all()
             results = []
 
             for dataset in datasets:
@@ -58,10 +58,10 @@ def create_app(config_name):
             return response
 
 
-    @app.route('/datasets/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+    @app.route('/admin/datasets/<int:id>', methods=['GET', 'PUT', 'DELETE'])
     def dataset_manipulation(id, **kwargs):
 
-        dataset = Datasets.query.filter_by(id=id).first()
+        dataset = Dataset.query.filter_by(id=id).first()
 
         if not dataset:
             abort(404)
