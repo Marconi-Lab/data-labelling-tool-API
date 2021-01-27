@@ -111,3 +111,30 @@ class UserRoles(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE'))
     role_id = db.Column(db.Integer(), db.ForeignKey('roles.id', ondelete='CASCADE'))
+
+class Item(db.Model):
+    """This class defines the data items table"""
+    
+    __tablename__ = "data_items"
+
+    id = db.Column(db.Integer, primary_key=True)
+    dataset_id = db.Column(db.Integer, db.ForeignKey(Datasets.id, ondelete="CASCADE"))
+    label = db.Column(db.String(255))
+    comment = db.Column(db.String(255))
+    labelled = db.Column(db.Boolean())
+
+    def __init__(self, dataset_id, label, comment, labelled):
+        """Initialize with dataset_id, label, comment, labelled_status"""
+        self.dataset_id = dataset_id
+        self.label = label
+        self.comment = comment
+        self.labelled = labelled
+
+    def save(self):
+        """Save an item
+        Applies for both creating an new item and updating an existing item.
+        """
+        db.session.add(self)
+        db.session.commit()
+
+    
