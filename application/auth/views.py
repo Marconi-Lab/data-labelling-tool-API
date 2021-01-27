@@ -45,6 +45,7 @@ class RegistrationView(MethodView):
 
             return make_response(jsonify(response)), 202
 
+
 class LoginView(MethodView):
     """This class-based view handles user login and access token generation."""
 
