@@ -119,7 +119,7 @@ class Item(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     dataset_id = db.Column(db.Integer, db.ForeignKey(Dataset.id, ondelete="CASCADE"))
-    name = db.Column(db.Strin(255))
+    name = db.Column(db.String(255))
     label = db.Column(db.String(255))
     comment = db.Column(db.String(255))
     labelled = db.Column(db.Boolean())
@@ -186,7 +186,7 @@ class Assignment(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey(User.id, ondelete="CASCADE"))
-    dataset_id = db.Column(db.Integer, db.ForeignKey(Datasets.id, ondelete="CASCADE"))
+    dataset_id = db.Column(db.Integer, db.ForeignKey(Dataset.id, ondelete="CASCADE"))
 
     def __init__(self, user_id, dataset_id):
         """Initialises an assignment with user_id and dataset_id"""
