@@ -1,6 +1,9 @@
 from application import db
-from flask_user import UserMixin
+# from flask_user import UserMixin
 from flask_bcrypt import Bcrypt
+import jwt
+from flask import current_app
+from datetime import datetime, timedelta
 
 class Datasets(db.Model):
     """This class represents the datasets table"""
@@ -33,7 +36,7 @@ class Datasets(db.Model):
     def __repr__(self):
         return "<Dataset: {}>".format(self.name)
 
-class User(db.Model, UserMixin):
+class User(db.Model):
     """This class defines the user table"""
 
     __tablename__ = "users"
