@@ -18,9 +18,12 @@ class AuthTestCase(unittest.TestCase):
             'password': 'test_password'
         }
         self.dataset = {'name': 'Cervical Infection', 'classes': ["Positive", "Negative", "Not Sure"]}
-        self.item = {
-            
-        }
+        self.images = [
+            (io.BytesIO(b"abcdef"), 'test.jpg'),
+            (io.BytesIO(b"abcdef"), 'test1.jpg'),
+            (io.BytesIO(b"abcdef"), 'test3.jpg'),
+            (io.BytesIO(b"abcdef"), 'test4.jpg')
+        ]
 
         # Binds application to current context
         with self.app.app_context():
@@ -28,18 +31,18 @@ class AuthTestCase(unittest.TestCase):
             db.create_all()
 
         #===================================================================
-    # def test_item_upload(self):
-    #     """Test if API can add item to dataset"""
-    #     #Upload dataset
-    #     dataset_res = self.client().post('/admin/dataset/', data=self.dataset)
-    #     self.assertEqual(dataset_res.status_code, 201)
-    #     dataset_json = json.loads(dataset_res.data.decode())
+    def test_item_upload(self):
+        """Test if API can add item to dataset"""
+        #Upload dataset
+        dataset_res = self.client().post('/admin/dataset/', data=self.dataset)
+        self.assertEqual(dataset_res.status_code, 201)
+        dataset_json = json.loads(dataset_res.data.decode())
 
-    #     #Upload item
+        #Upload item
 
-    #     item_res = self.client().post('/admin/datasets/item/', data=self.item, dataset_id=dataset_json['id'])
-    #     self.assertEqual(item_res.status_code, 201)
-    #     self.assertIn("Item1", str(item_res.data))
+        item_res = self.client().post('/admin/datasets/item/', data=self.item, dataset_id=dataset_json['id'], images=self.images)
+        self.assertEqual(item_res.status_code, 201)
+        self.assertIn("Item was successfully added", str(item_res.data))
 
 
 
