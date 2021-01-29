@@ -112,14 +112,27 @@ class AuthTestCase(unittest.TestCase):
         for user in self.user_data:
             res = self.client().post('/auth/register/', data=user)
             # get the results returned in json format
-            result = json.loads(res.data.decode())
             self.assertEqual(res.status_code, 201)
+
         rv = self.client().get("/admin/users/")
         self.assertEqual(rv.status_code, 200)
         self.assertIn("user1", str(json.loads(rv.data.decode())))
         self.assertIn("user2", str(rv.data))
         self.assertIn("user3", str(rv.data))
 
+    def test_post_user_datasets(self):
+        """Test if API can assign datasets to a user"""
+        # Create user
+        res = self.client().post('/auth/register/', data=self.user_data[0])
+        self.assertEqual(res.status_code, 201)
+        # Create Dataset
+        res1 = self.client().post('/admin/datasets/', data=self.dataset)
+        self.assertEqual(res.status_code, 201)
+        # Assign user a dataset
+        rv = self.client().post('/admin/users/1')
+        self.assertEqual(rv.status_code, 201)
+        self.assertIn("assignments", str(rv.data))
+    
     def tearDown(self):
         """teardown all initialized variables"""
         with self.app.app_context():
