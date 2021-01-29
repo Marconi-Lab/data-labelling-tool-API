@@ -63,6 +63,10 @@ class User(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    @staticmethod
+    def get_all():
+        return User.query.all()
+
     def generate_token(self, user_id):
         """Generates access Token"""
 
