@@ -34,13 +34,17 @@ class AuthTestCase(unittest.TestCase):
     def test_item_upload(self):
         """Test if API can add item to dataset"""
         #Upload dataset
-        dataset_res = self.client().post('/admin/dataset/', data=self.dataset)
+        dataset_res = self.client().post('/admin/datasets/', data=self.dataset)
         self.assertEqual(dataset_res.status_code, 201)
         dataset_json = json.loads(dataset_res.data.decode())
 
         #Upload item
 
-        item_res = self.client().post('/admin/datasets/item/', data=self.item, dataset_id=dataset_json['id'], images=self.images)
+        item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
+        print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        print("Item Response: ", item_res)
+        print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
         self.assertEqual(item_res.status_code, 201)
         self.assertIn("Item was successfully added", str(item_res.data))
 
