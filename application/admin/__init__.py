@@ -45,8 +45,7 @@ def item_manipulation(id, **kwargs):
     item = Item.query.filter_by(id=id).first()
     if not item:
         abort(404)
-        
-    print("+++++++++++item+++++++++++++++++++",item.id)
+
     images = Image.get_all(item.id)
     image_URLs = [i.image_URL for i in images]
 
@@ -69,3 +68,19 @@ def item_manipulation(id, **kwargs):
         })
         response.status_code = 200
         return response
+
+@admin_blueprint.route("/admin/users/", methods=["GET"])
+def user():
+    #GET request
+    users = User.get_all()
+    results = []
+
+    for user in users:
+        obj = {
+            "id": user.id,
+            "username": user.username
+        }
+        results.append(obj)
+    response = jsonify(results)
+    response.status_code = 200
+    return response
