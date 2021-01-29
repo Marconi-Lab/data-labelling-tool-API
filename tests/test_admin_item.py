@@ -73,7 +73,7 @@ class AuthTestCase(unittest.TestCase):
         item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
 
         #Retrieve item with id
-        rv = self.client().post('/admin/dataset/item/{}'.format(item_res['id']))
+        rv = self.client().post('/admin/datasets/item/{}/'.format(item_res['id']))
 
         self.assetEqual(rv.status_code, 200)
         self.assertIn("images", str(rv.data))
@@ -84,6 +84,21 @@ class AuthTestCase(unittest.TestCase):
             db.session.remove()
             db.drop_all()
 
+    def test_item_delete(self):
+        """Test if API can delete item and it's content"""
+          #Upload dataset
+        dataset_res = self.client().post('/admin/datasets/', data=self.dataset)
+        self.assertEqual(dataset_res.status_code, 201)
+        dataset_json = json.loads(dataset_res.data.decode())
+
+        #Upload item
+        item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
+        
+        rv = self.client().delete('/admin/datasets/item/1')
+        self.assertEqual(rv.status_code, 200)
+        #Check that item was deleted
+        res = self.client().get('admin/datasets/item/1')
+        self.assertEqual(result.status_code, 404)
 
 if __name__ == "__main__":
     unittest.main()
