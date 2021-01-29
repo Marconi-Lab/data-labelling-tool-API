@@ -24,7 +24,23 @@ class AuthTestCase(unittest.TestCase):
             (io.BytesIO(b"abcdef"), 'test3.jpg'),
             (io.BytesIO(b"abcdef"), 'test4.jpg')
         ]
-
+        self.user_data = [
+            {
+                'username': "user1",
+                'email': 'test1@example.com',
+                'password': 'test_password'
+            }, 
+            {
+                'username': "Admin2",
+                'email': 'test2@example.com',
+                'password': 'test_password'
+            }, 
+            {
+                'username': "Admin3",
+                'email': 'test3@example.com',
+                'password': 'test_password'
+            }
+        ]
         # Binds application to current context
         with self.app.app_context():
             #create all tables
@@ -90,6 +106,19 @@ class AuthTestCase(unittest.TestCase):
         #Check that item was deleted
         res = self.client().get('admin/datasets/item/1/')
         self.assertEqual(res.status_code, 404)
+
+    def test_get_users(self):
+        """Test if API can retrieve all users"""
+        for user in self.user_data:
+            res = self.client().post('/auth/register/', data=self.user)
+            # get the results returned in json format
+            result = json.loads(res.data.decode())
+            self.assertEqual(res.status_code, 201)
+        rv = self.client().get("/admin/users/")
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("user1", str(rv.data))
+        self.assertIn("user2", str(rv.data))
+        self.assertIn("user3", str(rv.data))
 
     def tearDown(self):
         """teardown all initialized variables"""
