@@ -124,13 +124,10 @@ class Item(db.Model):
     comment = db.Column(db.String(255))
     labelled = db.Column(db.Boolean())
 
-    def __init__(self, dataset_id, label, comment, labelled):
+    def __init__(self, dataset_id, name):
         """Initialize with dataset_id, label, comment, labelled_status"""
         self.dataset_id = dataset_id
-        self.label = label
-        self.comment = comment
-        self.labelled = labelled
-
+        self.name = name
     def save(self):
         """Save an item
         Applies for both creating an new item and updating an existing item.
