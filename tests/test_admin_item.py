@@ -41,9 +41,6 @@ class AuthTestCase(unittest.TestCase):
         #Upload item
 
         item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
-        print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        print("Item Response: ", item_res)
-        print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
         self.assertEqual(item_res.status_code, 201)
         self.assertIn("Item was successfully added", str(item_res.data))
@@ -57,7 +54,7 @@ class AuthTestCase(unittest.TestCase):
 
         #Upload item
         item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
-        rv = self.client().post("/admin/datasets/item/", data={"dataset_id": dataset_json["id"]})
+        rv = self.client().get("/admin/datasets/item/", data={"dataset_id": dataset_json["id"]})
 
         #Make assertions
         self.assertEqual(rv.status_code, 200)
@@ -71,19 +68,13 @@ class AuthTestCase(unittest.TestCase):
 
         #Upload item
         item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
-
+        item_json = json.loads(item_res.data.decode())
         #Retrieve item with id
-        rv = self.client().post('/admin/datasets/item/{}/'.format(item_res['id']))
-
-        self.assetEqual(rv.status_code, 200)
+        rv = self.client().get('/admin/datasets/item/1/')
+       
+        self.assertEqual(rv.status_code, 200)
         self.assertIn("images", str(rv.data))
-
-    def tearDown(self):
-        """teardown all initialized variables"""
-        with self.app.app_context():
-            db.session.remove()
-            db.drop_all()
-
+    
     def test_item_delete(self):
         """Test if API can delete item and it's content"""
           #Upload dataset
@@ -94,11 +85,17 @@ class AuthTestCase(unittest.TestCase):
         #Upload item
         item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
         
-        rv = self.client().delete('/admin/datasets/item/1')
+        rv = self.client().delete('/admin/datasets/item/1/')
         self.assertEqual(rv.status_code, 200)
         #Check that item was deleted
-        res = self.client().get('admin/datasets/item/1')
-        self.assertEqual(result.status_code, 404)
+        res = self.client().get('admin/datasets/item/1/')
+        self.assertEqual(res.status_code, 404)
+
+    def tearDown(self):
+        """teardown all initialized variables"""
+        with self.app.app_context():
+            db.session.remove()
+            db.drop_all()
 
 if __name__ == "__main__":
     unittest.main()
