@@ -31,12 +31,12 @@ class AuthTestCase(unittest.TestCase):
                 'password': 'test_password'
             }, 
             {
-                'username': "Admin2",
+                'username': "user2",
                 'email': 'test2@example.com',
                 'password': 'test_password'
             }, 
             {
-                'username': "Admin3",
+                'username': "user3",
                 'email': 'test3@example.com',
                 'password': 'test_password'
             }
@@ -110,13 +110,13 @@ class AuthTestCase(unittest.TestCase):
     def test_get_users(self):
         """Test if API can retrieve all users"""
         for user in self.user_data:
-            res = self.client().post('/auth/register/', data=self.user)
+            res = self.client().post('/auth/register/', data=user)
             # get the results returned in json format
             result = json.loads(res.data.decode())
             self.assertEqual(res.status_code, 201)
         rv = self.client().get("/admin/users/")
-        self.assertEqual(res.status_code, 200)
-        self.assertIn("user1", str(rv.data))
+        self.assertEqual(rv.status_code, 200)
+        self.assertIn("user1", str(json.loads(rv.data.decode())))
         self.assertIn("user2", str(rv.data))
         self.assertIn("user3", str(rv.data))
 
