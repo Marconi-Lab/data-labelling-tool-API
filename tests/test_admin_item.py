@@ -129,10 +129,23 @@ class AuthTestCase(unittest.TestCase):
         res1 = self.client().post('/admin/datasets/', data=self.dataset)
         self.assertEqual(res.status_code, 201)
         # Assign user a dataset
-        rv = self.client().post('/admin/users/1')
+        rv = self.client().post('/admin/users/1', data=self.dataset)
         self.assertEqual(rv.status_code, 201)
         self.assertIn("assignments", str(rv.data))
-    
+
+    def test_delete_user_datasets(self):
+        """Test if API can remove user dataset assignment"""
+          # Create user
+        res = self.client().post('/auth/register/', data=self.user_data[0])
+        self.assertEqual(res.status_code, 201)
+        # Create Dataset
+        res1 = self.client().post('/admin/datasets/', data=self.dataset)
+        self.assertEqual(res.status_code, 201)
+        rv = self.client().delete('/admin/users/1/', data=self.dataset)
+        self.assertEqual(rv.status_code, 200)
+        result = self.client().get('/admin/users/1/')
+        self.assertEqual(result.status_code, 404)
+
     def tearDown(self):
         """teardown all initialized variables"""
         with self.app.app_context():
