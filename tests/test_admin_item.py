@@ -60,10 +60,23 @@ class AuthTestCase(unittest.TestCase):
         rv = self.client().post("/admin/datasets/item/", data={"dataset_id": dataset_json["id"]})
 
         #Make assertions
-        self.assertEqual(res.status_code, 200)
-        self.assertIn("items", str(rv.data))
-        self.assertIn("images", str(rv.data))
+        self.assertEqual(rv.status_code, 200)
 
+    def test_item_get_with_id(self):
+        """Test if API can get item by it's id"""
+        #Upload dataset
+        dataset_res = self.client().post('/admin/datasets/', data=self.dataset)
+        self.assertEqual(dataset_res.status_code, 201)
+        dataset_json = json.loads(dataset_res.data.decode())
+
+        #Upload item
+        item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
+
+        #Retrieve item with id
+        rv = self.client().post('/admin/dataset/item/{}'.format(item_res['id']))
+
+        self.assetEqual(rv.status_code, 200)
+        self.assertIn("images", str(rv.data))
 
     def tearDown(self):
         """teardown all initialized variables"""
