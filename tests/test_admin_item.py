@@ -48,6 +48,21 @@ class AuthTestCase(unittest.TestCase):
         self.assertEqual(item_res.status_code, 201)
         self.assertIn("Item was successfully added", str(item_res.data))
 
+    def test_item_get(self):
+        """Test if API can retrieve items"""
+        #Upload dataset
+        dataset_res = self.client().post('/admin/datasets/', data=self.dataset)
+        self.assertEqual(dataset_res.status_code, 201)
+        dataset_json = json.loads(dataset_res.data.decode())
+
+        #Upload item
+        item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
+        rv = self.client().post("/admin/datasets/item/", data={"dataset_id": dataset_json["id"]})
+
+        #Make assertions
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("items", str(rv.data))
+        self.assertIn("images", str(rv.data))
 
 
     def tearDown(self):
