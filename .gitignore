@@ -5,3 +5,7 @@
 .env
 
 *.pyc
+
+__pycache__
+
+application/static/*
