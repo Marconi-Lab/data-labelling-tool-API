@@ -12,7 +12,7 @@ from flask import request, jsonify, abort
 db = SQLAlchemy()
 
 def create_app(config_name):
-    from application.models import Dataset, User
+    from application.models import Dataset, User, Item
 
     app = FlaskAPI(__name__, instance_relative_config=True)
     app.config.from_object(app_config[config_name])
@@ -34,6 +34,7 @@ def create_app(config_name):
                   "id": dataset.id,
                   "name": dataset.name,
                   "classes": dataset.classes,
+                  "progress": 0,
                   "date_created": dataset.date_created,
                   "date_modified": dataset.date_modified  
                 })
@@ -45,10 +46,19 @@ def create_app(config_name):
             results = []
 
             for dataset in datasets:
+                #Calculating labelling progress
+                labelled_items = Item.query.filter_by(dataset_id=dataset.id).count()
+                all_items = Item.query.count()
+                if labelled_items and all_items:
+                    progress = (labelled_items/all_items)*100
+                else: 
+                    progress = 0
+
                 obj = {
                     "id": dataset.id,
                     "name": dataset.name,
                     "classes": dataset.classes,
+                    "progress": progress,
                     "date_created": dataset.date_created,
                     "date_modified": dataset.date_modified 
                 }
@@ -88,10 +98,18 @@ def create_app(config_name):
             return response
         else:
             # GET by ID
+            labelled_items = Item.query.filter_by(dataset_id=dataset.id).count()
+            all_items = Item.query.count()
+            if labelled_items and all_items:
+                progress = (labelled_items/all_items)*100
+            else:
+                progress = 0
+
             response = jsonify({
                 "id": dataset.id,
                 "name": dataset.name,
                 "classes": dataset.classes,
+                "progress": progress,
                 "date_created": dataset.date_created,
                 "date_modified": dataset.date_modified
             })
