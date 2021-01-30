@@ -84,4 +84,26 @@ def dataset_items_manipulation(item_id, **kwargs):
         )
         response.status_code = 200
         return response
-    
+@user_blueprint.route("/user/datasets/<int:dataset_id>/", methods=["GET"])
+def get_dataset_items(dataset_id):
+    dataset = Dataset.query.filter_by(id=dataset_id).first()
+    items = Item.query.filter_by(dataset_id=dataset_id)
+    data_items = list()
+
+    for item in items:
+        obj = {
+            "id": item.id,
+            "name": item.name,
+            "label": item.label,
+            "comment": item.comment,
+            "labelled": item.labelled,
+            "labelled_by": item.labelled_by
+        }
+        data_items.append(obj)
+    response = jsonify({
+        "id": dataset.id,
+        "name": dataset.name,
+        "items": data_items
+    })
+    response.status_code = 200
+    return response
