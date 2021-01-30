@@ -31,6 +31,17 @@ class AuthTestCase(unittest.TestCase):
         with self.app.app_context():
             db.create_all()
 
+    def test_get_user_stats(self):
+        """Test if API can retrieve user's statistics summary"""
+        # Create user
+        res = self.client().post('/auth/register/', data=self.user_data)
+        self.assertEqual(res.status_code, 201)
+
+        rv = self.client().get('/user/1/home/')
+        self.assertEqual(rv.status_code, 200)
+        self.assertIn("images", str(rv.data))
+        self.assertIn("datasets", str(rv.data))
+
     def tearDown(self):
         """Teardown all initialized variables"""
         with self.app.app_context():
