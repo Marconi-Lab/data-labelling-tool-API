@@ -42,6 +42,22 @@ class AuthTestCase(unittest.TestCase):
         self.assertIn("images", str(rv.data))
         self.assertIn("datasets", str(rv.data))
 
+    def test_get_user_datasets(self):
+        """Test if API can retrieve user assigned datasets"""
+        # Create user
+        res = self.client().post('/auth/register/', data=self.user_data[0])
+        self.assertEqual(res.status_code, 201)
+        # Create Dataset
+        res1 = self.client().post('/admin/datasets/', data=self.dataset)
+        self.assertEqual(res1.status_code, 201)
+        # Assign dataset
+        res2 = self.client().post('/admin/users/1/assignments/', data={"dataset_id": "1"})
+        self.assertEqual(res2.status_code, 201)
+
+        rv = self.client().get("/user/1/datasets/")
+        self.assertEqual(rv.status_code, 200)
+        self.assertIn("Cervical Infection", str(rv.data))
+
     def tearDown(self):
         """Teardown all initialized variables"""
         with self.app.app_context():
