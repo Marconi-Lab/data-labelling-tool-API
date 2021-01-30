@@ -49,6 +49,7 @@ class AuthTestCase(unittest.TestCase):
         result = self.client().get('/admin/datasets/{}'.format(json_res['id']))
         self.assertEqual(result.status_code, 200)
         self.assertIn("Cervical Infection", str(result.data))
+        self.assertIn("progress", str(result.data))
 
     def test_dataset_can_be_edited(self):
         """Test if API can edit and existing dataset. (PUT request)"""
