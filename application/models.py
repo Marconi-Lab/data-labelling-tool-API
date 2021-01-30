@@ -29,6 +29,10 @@ class Dataset(db.Model):
     def get_all():
         return Dataset.query.all()
 
+    @staticmethod
+    def count_all():
+        return Dataset.query.count()
+
     def delete(self):
         db.session.delete(self)
         db.session.commit()
@@ -66,6 +70,10 @@ class User(db.Model):
     @staticmethod
     def get_all():
         return User.query.all()
+    
+    @staticmethod
+    def count_all():
+        return User.query.count()
 
     def generate_token(self, user_id):
         """Generates access Token"""
