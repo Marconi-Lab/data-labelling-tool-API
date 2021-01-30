@@ -61,6 +61,9 @@ class AuthTestCase(unittest.TestCase):
 
     def test_user_get_dataset_items(self):
         """Test if API can retrieve all data items in a specific class"""
+        # Create user
+        res = self.client().post('/auth/register/', data=self.user_data)
+        self.assertEqual(res.status_code, 201)
         #Upload dataset
         dataset_res = self.client().post('/admin/datasets/', data=self.dataset)
         self.assertEqual(dataset_res.status_code, 201)
@@ -73,6 +76,9 @@ class AuthTestCase(unittest.TestCase):
 
     def test_item_get_with_id(self):
         """Test if API can get item by it's id"""
+        # Create user
+        res = self.client().post('/auth/register/', data=self.user_data)
+        self.assertEqual(res.status_code, 201)
         #Upload dataset
         dataset_res = self.client().post('/admin/datasets/', data=self.dataset)
         self.assertEqual(dataset_res.status_code, 201)
@@ -82,13 +88,16 @@ class AuthTestCase(unittest.TestCase):
         item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
         item_json = json.loads(item_res.data.decode())
         #Retrieve item with id
-        rv = self.client().get('/user/datasets/1/item/1/')
+        rv = self.client().get('/user/datasets/item/1/')
        
         self.assertEqual(rv.status_code, 200)
         self.assertIn("images", str(rv.data))
 
     def test_user_label_item(self):
         """Test if API can label item"""
+        # Create user
+        res = self.client().post('/auth/register/', data=self.user_data)
+        self.assertEqual(res.status_code, 201)
         #Upload dataset
         dataset_res = self.client().post('/admin/datasets/', data=self.dataset)
         self.assertEqual(dataset_res.status_code, 201)
@@ -98,9 +107,9 @@ class AuthTestCase(unittest.TestCase):
         item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
         item_json = json.loads(item_res.data.decode())
         #Retrieve item with id
-        rv = self.client().put('/user/datasets/1/item/1/', data={"label": "not sure", "comment": "No comments"})
-        self.assertEqual(put_res.status_code, 200)
-        results = self.client().get("/user/datasets/1/item/1/")
+        rv = self.client().put('/user/datasets/item/1/', data={"label": "not sure", "comment": "No comments", "labeller": "1"})
+        self.assertEqual(rv.status_code, 200)
+        results = self.client().get("/user/datasets/item/1/")
         self.assertIn("not sure", str(results.data))
 
     def tearDown(self):
