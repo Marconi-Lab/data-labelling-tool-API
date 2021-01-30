@@ -120,7 +120,7 @@ class AuthTestCase(unittest.TestCase):
         self.assertIn("user2", str(rv.data))
         self.assertIn("user3", str(rv.data))
 
-    def test_post_user_datasets(self):
+    def test_post_assign_user_datasets(self):
         """Test if API can assign datasets to a user"""
         # Create user
         res = self.client().post('/auth/register/', data=self.user_data[0])
@@ -129,23 +129,44 @@ class AuthTestCase(unittest.TestCase):
         res1 = self.client().post('/admin/datasets/', data=self.dataset)
         self.assertEqual(res.status_code, 201)
         # Assign user a dataset
-        rv = self.client().post('/admin/users/1', data=self.dataset)
+        rv = self.client().post('/admin/users/1/assignments/', data=self.dataset)
         self.assertEqual(rv.status_code, 201)
         self.assertIn("assignments", str(rv.data))
 
-    def test_delete_user_datasets(self):
+    def test_retract_user_dataset_assignment(self):
         """Test if API can remove user dataset assignment"""
-          # Create user
+        # Create user
         res = self.client().post('/auth/register/', data=self.user_data[0])
         self.assertEqual(res.status_code, 201)
         # Create Dataset
         res1 = self.client().post('/admin/datasets/', data=self.dataset)
         self.assertEqual(res.status_code, 201)
-        rv = self.client().delete('/admin/users/1/', data=self.dataset)
+        # Assign dataset
+        res2 = self.client().post('/admin/users/1/assignments/', data=self.dataset)
+        self.assertEqual(res2.status_code, 201)
+        # Delete assignment
+        rv = self.client().delete('/admin/users/1/assignments/', data=self.dataset)
         self.assertEqual(rv.status_code, 200)
-        result = self.client().get('/admin/users/1/')
+
+        result = self.client().get('/admin/users/datasets/1/', data={"user_id": "1")
         self.assertEqual(result.status_code, 404)
 
+    def test_get_all_user_dataset_assignments(self):
+        """Test if API can retrieve all user dataset assignments"""
+        # Create user
+        res = self.client().post('/auth/register/', data=self.user_data[0])
+        self.assertEqual(res.status_code, 201)
+        # Create Dataset
+        res1 = self.client().post('/admin/datasets/', data=self.dataset)
+        self.assertEqual(res.status_code, 201)
+        # Assign dataset
+        res2 = self.client().post('/admin/users/1/assignments/', data=self.dataset)
+        self.assertEqual(res2.status_code, 201)
+
+        rv = self.client().get("/admin/users/1/assignments/")
+        self.assertEqual(result.status_code, 200)
+        self.assertIn("Cervical Infection", str(rv.data))
+        
     def tearDown(self):
         """teardown all initialized variables"""
         with self.app.app_context():
