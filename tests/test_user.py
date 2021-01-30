@@ -71,8 +71,12 @@ class AuthTestCase(unittest.TestCase):
 
         #Upload item
         item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
+        self.assertEqual(item_res.status_code, 201)
         #Get items
-        rv = self.client().get("/user/1/datasets/", data={"dataset_id": dataset_json["id"]})
+        rv = self.client().get("/user/datasets/1/", data={"dataset_id": dataset_json["id"]})
+        
+        self.assertEqual(rv.status_code, 200)
+        self.assertIn("items", str(rv.data))
 
     def test_item_get_with_id(self):
         """Test if API can get item by it's id"""
