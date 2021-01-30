@@ -1,6 +1,10 @@
 def permission_required(function):
     def wrap(self, request, *args, **kwargs):
-        if not request.headers.is_admin:
+        auth_headers = request.headers.get("Authorization")
+        access_token = auth_headers.split(" ")[1]
+        if not access_token:
+            abort(401)
+        if not request.headers.get("is_admin"):
             abort(403)
         return function(self, request, *args, **kwargs)
     wrap.__doc__ = function.__doc__
