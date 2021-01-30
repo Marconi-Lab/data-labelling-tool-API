@@ -86,7 +86,7 @@ class AuthTestCase(unittest.TestCase):
         item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
         item_json = json.loads(item_res.data.decode())
         #Retrieve item with id
-        rv = self.client().get('/admin/datasets/item/1/')
+        rv = self.client().get('/admin/datasets/item/1/', data={"dataset_id": dataset_json["id"]})
        
         self.assertEqual(rv.status_code, 200)
         self.assertIn("images", str(rv.data))

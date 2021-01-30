@@ -1,6 +1,7 @@
 import unittest
 import json
 from application import create_app, db
+import io
 
 class AuthTestCase(unittest.TestCase):
     """Test case for the user blueprint"""
@@ -10,7 +11,7 @@ class AuthTestCase(unittest.TestCase):
         
         self.client = self.app.test_client
 
-         self.admin_data = {
+        self.admin_data = {
             'username': "Admin",
             'email': 'test@example.com',
             'password': 'test_password'
@@ -69,6 +70,22 @@ class AuthTestCase(unittest.TestCase):
         item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
         #Get items
         rv = self.client().get("/user/1/datasets/", data={"dataset_id": dataset_json["id"]})
+
+    def test_item_get_with_id(self):
+        """Test if API can get item by it's id"""
+        #Upload dataset
+        dataset_res = self.client().post('/admin/datasets/', data=self.dataset)
+        self.assertEqual(dataset_res.status_code, 201)
+        dataset_json = json.loads(dataset_res.data.decode())
+
+        #Upload item
+        item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
+        item_json = json.loads(item_res.data.decode())
+        #Retrieve item with id
+        rv = self.client().get('/user/datasets/1/item/1/')
+       
+        self.assertEqual(rv.status_code, 200)
+        self.assertIn("images", str(rv.data))
 
     def tearDown(self):
         """Teardown all initialized variables"""
