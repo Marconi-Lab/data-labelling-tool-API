@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, abort
-from application.models import Image, Item, User
+from application.models import Image, Item, User, Assignment
 
 admin_blueprint = Blueprint('admin', __name__)
 
@@ -82,5 +82,21 @@ def user():
         }
         results.append(obj)
     response = jsonify(results)
+    response.status_code = 200
+    return response
+
+@admin_blueprint.route("/admin/users/datasets/<int:dataset_id>/", methods=["GET"])
+def user_datasets(dataset_id, **kwargs):
+    user_id = str(request.data.get("user_id", ""))
+    user_assignment = Assignment.query.filter_by(id=dataset_id)
+
+    if not user_assignment:
+        abort(404)
+
+    response = jsonify({
+        "id": user_assignment.id,
+        "user_id": user_id,
+        "dataset_id": dataset_id
+    })    
     response.status_code = 200
     return response
