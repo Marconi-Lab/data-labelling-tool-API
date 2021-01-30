@@ -15,6 +15,13 @@ class AuthTestCase(unittest.TestCase):
             'email': 'test@example.com',
             'password': 'test_password'
         }
+        self.dataset = {'name': 'Cervical Infection', 'classes': ["Positive", "Negative", "Not Sure"]}
+        self.images = [
+            (io.BytesIO(b"abcdef"), 'test.jpg'),
+            (io.BytesIO(b"abcdef"), 'test1.jpg'),
+            (io.BytesIO(b"abcdef"), 'test3.jpg'),
+            (io.BytesIO(b"abcdef"), 'test4.jpg')
+        ]
         self.user_data = {
             'username': "User",
             'email': 'user@example.com',
