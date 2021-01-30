@@ -46,7 +46,7 @@ class AuthTestCase(unittest.TestCase):
     def test_get_user_datasets(self):
         """Test if API can retrieve user assigned datasets"""
         # Create user
-        res = self.client().post('/auth/register/', data=self.user_data[0])
+        res = self.client().post('/auth/register/', data=self.user_data)
         self.assertEqual(res.status_code, 201)
         # Create Dataset
         res1 = self.client().post('/admin/datasets/', data=self.dataset)

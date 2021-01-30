@@ -20,3 +20,22 @@ def get_user_stats(user_id, **kwargs):
     })
     response.status_code = 200
     return response
+
+@user_blueprint.route("/user/<int:user_id>/datasets/", methods=["GET"])
+def get_user_datasets(user_id, *kwargs):
+    assignments = Assignment.query.filter_by(user_id=user_id)
+    datasets = []
+    for assignment in assignments:
+        dataset = Dataset.query.filter_by(id=assignment.dataset_id).first()
+        dataset = {
+            "id": dataset.id,
+            "name": dataset.name,
+            "classes": dataset.classes
+        }
+        datasets.append(dataset)
+    response = jsonify({
+        "id": user_id,
+        "datasets": datasets
+    })
+    response.status_code = 200
+    return response
