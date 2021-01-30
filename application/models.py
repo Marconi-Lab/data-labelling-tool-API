@@ -135,6 +135,7 @@ class Item(db.Model):
     label = db.Column(db.String(255))
     comment = db.Column(db.String(255))
     labelled = db.Column(db.Boolean())
+    labelled_by = db.Column(db.Integer, db.ForeignKey(User.id, ondelete="CASCADE"))
 
     def __init__(self, dataset_id, name):
         """Initialize with dataset_id, label, comment, labelled_status"""
