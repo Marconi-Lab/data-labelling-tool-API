@@ -151,3 +151,17 @@ def user_assignments_manipulation(user_id, **kwargs):
         response = jsonify(results)
         response.status_code = 200
         return response
+
+@admin_blueprint.route('/admin/<int:id>/home/', methods=["GET"])
+def admin_stats(id, **kwargs):
+    admin = User.query.filter_by(id=id).first()
+    users = User.count_all()
+    datasets = Dataset.count_all()
+    response = jsonify({
+        "id": admin.id,
+        "name": admin.username,
+        "users": users,
+        "datasets": datasets
+    })
+    response.status_code = 200
+    return response
