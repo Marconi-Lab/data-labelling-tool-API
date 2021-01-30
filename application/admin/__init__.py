@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, abort
-from application.models import Image, Item, User, Assignment
+from application.models import Image, Item, User, Assignment, Dataset
 
 admin_blueprint = Blueprint('admin', __name__)
 
@@ -88,7 +88,7 @@ def user():
 @admin_blueprint.route("/admin/users/datasets/<int:dataset_id>/", methods=["GET"])
 def user_datasets(dataset_id, **kwargs):
     user_id = str(request.data.get("user_id", ""))
-    user_assignment = Assignment.query.filter_by(id=dataset_id)
+    user_assignment = Assignment.query.filter_by(dataset_id=int(dataset_id), user_id=int(user_id)).first()
 
     if not user_assignment:
         abort(404)
@@ -100,3 +100,54 @@ def user_datasets(dataset_id, **kwargs):
     })    
     response.status_code = 200
     return response
+
+@admin_blueprint.route("/admin/users/<int:user_id>/assignments/", methods=["POST", "GET", "DELETE"])
+def user_assignments_manipulation(user_id, **kwargs):
+    # assigment = Assignment.query.filter_by()
+    if request.method == "POST":
+        dataset_id = str(request.data.get("dataset_id", ""))
+        dataset = Dataset.query.filter_by(id=int(dataset_id)).first()
+        if not dataset:
+            abort(404)
+        assignment = Assignment(user_id=int(user_id), dataset_id=int(dataset_id))
+        assignment.save()
+        response = jsonify({
+            "id": assignment.id,
+            "dataset": {
+                "id": dataset.id,
+                "name": dataset.name,
+                "classes": dataset.classes,
+            },
+            "user_id": user_id
+        })
+        response.status_code = 201
+        return response
+    elif request.method == "DELETE":
+        dataset_id = str(request.data.get("dataset_id", ""))
+        dataset = Dataset.query.filter_by(id=int(dataset_id)).first()
+        if not dataset:
+            abort(404)
+        assignment = Assignment.query.filter_by(user_id=int(user_id), dataset_id=int(dataset_id)).first()
+        assignment.delete()
+        return {
+            "Message": "Assignment {} deleted successfully".format(id)
+        }, 200
+    else:
+        # GET Request
+        assignments = Assignment.get_user_datasets(user_id)
+        results = []
+        for i in assignments:
+            dataset = Dataset.query.filter_by(id=i.dataset_id).first()
+            obj = {
+                "id": i.id,
+                "dataset": {
+                    "id": dataset.id,
+                    "name": dataset.name,
+                    "classes": dataset.classes,
+                },
+                "user_id": i.user_id
+            }
+            results.append(obj)
+        response = jsonify(results)
+        response.status_code = 200
+        return response
