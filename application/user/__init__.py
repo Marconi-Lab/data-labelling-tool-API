@@ -39,3 +39,49 @@ def get_user_datasets(user_id, *kwargs):
     })
     response.status_code = 200
     return response
+
+@user_blueprint.route("/user/datasets/item/<int:item_id>/", methods=["GET", "PUT"])
+def dataset_items_manipulation(item_id, **kwargs):
+    item = Item.query.filter_by(id=item_id).first()
+    label = str(request.data.get("label", ""))
+    comment = str(request.data.get("comment", ""))
+    labeller = str(request.data.get("labeller", ""))
+
+    if request.method == "PUT":
+        item.label = label
+        item.comment = comment
+        item.labelled_by = labeller
+        item.labelled = True
+        item.save()
+        response = jsonify(
+            {
+            "id": item.id,
+            "name": item.name,
+            "label": item.label,
+            "comment": item.comment,
+            "labelled": item.labelled,
+            "labelled_by": item.labelled_by
+            }
+        )
+        response.status_code = 200
+        return response
+    else: 
+        images = Image.query.filter_by(item_id=item.id)
+        image_URLs = list()
+        for image in images:
+            image_URLs.append(image.image_URL)
+
+        response = jsonify(
+            {
+            "id": item.id,
+            "name": item.name,
+            "label": item.label,
+            "comment": item.comment,
+            "labelled": item.labelled,
+            "labelled_by": item.labelled_by,
+            "images": image_URLs
+            }
+        )
+        response.status_code = 200
+        return response
+    
