@@ -104,4 +104,6 @@ def create_app(config_name):
     from .admin import admin_blueprint
     app.register_blueprint(admin_blueprint)
     
+    from .user import user_blueprint
+    app.register_blueprint(user_blueprint)
     return app
