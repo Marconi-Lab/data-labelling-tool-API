@@ -49,6 +49,7 @@ class User(db.Model):
     email = db.Column(db.String(255), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
     username = db.Column(db.String(100), nullable=False)
+    is_admin = db.Column(db.Boolean())
     # Define the relationship to Role via UserRoles
     roles = db.relationship('Role', secondary='user_roles')
 
