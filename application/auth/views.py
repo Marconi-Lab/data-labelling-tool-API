@@ -22,7 +22,8 @@ class RegistrationView(MethodView):
                 email = post_data['email']
                 password = post_data['password']
                 username = post_data['username']
-                user = User(email=email, password=password, username=username)
+                is_admin = post_data['is_admin']
+                user = User(email=email, password=password, username=username, is_admin=is_admin)
                 user.save()
 
                 response = {
@@ -62,7 +63,11 @@ class LoginView(MethodView):
                 if access_token:
                     response = {
                         'message': 'You logged in successfully.',
-                        'access_token': access_token
+                        'access_token': access_token,
+                        'is_admin': user.is_admin,
+                        'id': user.id,
+                        'username': user.username,
+                        'email': user.email
                     }
                     return make_response(jsonify(response)), 200
             else:

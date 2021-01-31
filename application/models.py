@@ -50,8 +50,6 @@ class User(db.Model):
     password = db.Column(db.String(255), nullable=False)
     username = db.Column(db.String(100), nullable=False)
     is_admin = db.Column(db.Boolean())
-    # Define the relationship to Role via UserRoles
-    roles = db.relationship('Role', secondary='user_roles')
 
     def __init__(self, email, password, username):
         """Initialize the user with an email, username and a password"""
