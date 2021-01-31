@@ -3,6 +3,7 @@ import json
 from application import create_app, db
 import io
 
+
 class AuthTestCase(unittest.TestCase):
     """Test case for the admin blueprint"""
 
@@ -13,104 +14,139 @@ class AuthTestCase(unittest.TestCase):
         self.client = self.app.test_client
 
         self.user_data = {
-            'username': "Admin",
-            'email': 'test@example.com',
-            'password': 'test_password'
+            "username": "Admin",
+            "email": "test@example.com",
+            "password": "test_password",
         }
-        self.dataset = {'name': 'Cervical Infection', 'classes': ["Positive", "Negative", "Not Sure"]}
+        self.dataset = {
+            "name": "Cervical Infection",
+            "classes": ["Positive", "Negative", "Not Sure"],
+        }
         self.images = [
-            (io.BytesIO(b"abcdef"), 'test.jpg'),
-            (io.BytesIO(b"abcdef"), 'test1.jpg'),
-            (io.BytesIO(b"abcdef"), 'test3.jpg'),
-            (io.BytesIO(b"abcdef"), 'test4.jpg')
+            (io.BytesIO(b"abcdef"), "test.jpg"),
+            (io.BytesIO(b"abcdef"), "test1.jpg"),
+            (io.BytesIO(b"abcdef"), "test3.jpg"),
+            (io.BytesIO(b"abcdef"), "test4.jpg"),
         ]
         self.user_data = [
             {
-                'username': "user1",
-                'email': 'test1@example.com',
-                'password': 'test_password'
-            }, 
+                "username": "user1",
+                "email": "test1@example.com",
+                "password": "test_password",
+            },
             {
-                'username': "user2",
-                'email': 'test2@example.com',
-                'password': 'test_password'
-            }, 
+                "username": "user2",
+                "email": "test2@example.com",
+                "password": "test_password",
+            },
             {
-                'username': "user3",
-                'email': 'test3@example.com',
-                'password': 'test_password'
-            }
+                "username": "user3",
+                "email": "test3@example.com",
+                "password": "test_password",
+            },
         ]
         # Binds application to current context
         with self.app.app_context():
-            #create all tables
+            # create all tables
             db.create_all()
 
-        #===================================================================
+    def login_admin(self, email="admin@test.com", password="test1234"):
+        """Helper method for admin log in"""
+        admin_data = {"email": email, "password": password}
+        return self.client().post("/auth/login/", data=admin_data)
+
+    def test_dataset_creation(self):
+        """Test if API can create a dataset. (POST request)"""
+        self.register_admin()
+        login_res = self.login_admin()
+        self.assertEqual(login_res.status_code, 200)
+        access_token = json.loads(login_res.data.decode())["access_token"]
+        is_admin = bool(json.loads(login_res.data.decode())["is_admin"])
+
     def test_item_upload(self):
         """Test if API can add item to dataset"""
-        #Upload dataset
-        dataset_res = self.client().post('/admin/datasets/', data=self.dataset)
+        # Upload dataset
+        dataset_res = self.client().post("/admin/datasets/", data=self.dataset)
         self.assertEqual(dataset_res.status_code, 201)
         dataset_json = json.loads(dataset_res.data.decode())
 
-        #Upload item
+        # Upload item
 
-        item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
+        item_res = self.client().post(
+            "/admin/datasets/item/",
+            data={"dataset_id": dataset_json["id"], "images": self.images},
+            content_type="multipart/form-data",
+        )
 
         self.assertEqual(item_res.status_code, 201)
         self.assertIn("Item was successfully added", str(item_res.data))
 
     def test_item_get(self):
         """Test if API can retrieve items"""
-        #Upload dataset
-        dataset_res = self.client().post('/admin/datasets/', data=self.dataset)
+        # Upload dataset
+        dataset_res = self.client().post("/admin/datasets/", data=self.dataset)
         self.assertEqual(dataset_res.status_code, 201)
         dataset_json = json.loads(dataset_res.data.decode())
 
-        #Upload item
-        item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
-        rv = self.client().get("/admin/datasets/item/", data={"dataset_id": dataset_json["id"]})
+        # Upload item
+        item_res = self.client().post(
+            "/admin/datasets/item/",
+            data={"dataset_id": dataset_json["id"], "images": self.images},
+            content_type="multipart/form-data",
+        )
+        rv = self.client().get(
+            "/admin/datasets/item/", data={"dataset_id": dataset_json["id"]}
+        )
 
-        #Make assertions
+        # Make assertions
         self.assertEqual(rv.status_code, 200)
 
     def test_item_get_with_id(self):
         """Test if API can get item by it's id"""
-        #Upload dataset
-        dataset_res = self.client().post('/admin/datasets/', data=self.dataset)
+        # Upload dataset
+        dataset_res = self.client().post("/admin/datasets/", data=self.dataset)
         self.assertEqual(dataset_res.status_code, 201)
         dataset_json = json.loads(dataset_res.data.decode())
 
-        #Upload item
-        item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
+        # Upload item
+        item_res = self.client().post(
+            "/admin/datasets/item/",
+            data={"dataset_id": dataset_json["id"], "images": self.images},
+            content_type="multipart/form-data",
+        )
         item_json = json.loads(item_res.data.decode())
-        #Retrieve item with id
-        rv = self.client().get('/admin/datasets/item/1/', data={"dataset_id": dataset_json["id"]})
-       
+        # Retrieve item with id
+        rv = self.client().get(
+            "/admin/datasets/item/1/", data={"dataset_id": dataset_json["id"]}
+        )
+
         self.assertEqual(rv.status_code, 200)
         self.assertIn("images", str(rv.data))
-    
+
     def test_item_delete(self):
         """Test if API can delete item and it's content"""
-          #Upload dataset
-        dataset_res = self.client().post('/admin/datasets/', data=self.dataset)
+        # Upload dataset
+        dataset_res = self.client().post("/admin/datasets/", data=self.dataset)
         self.assertEqual(dataset_res.status_code, 201)
         dataset_json = json.loads(dataset_res.data.decode())
 
-        #Upload item
-        item_res = self.client().post('/admin/datasets/item/', data={"dataset_id":dataset_json['id'], "images":self.images}, content_type="multipart/form-data")
-        
-        rv = self.client().delete('/admin/datasets/item/1/')
+        # Upload item
+        item_res = self.client().post(
+            "/admin/datasets/item/",
+            data={"dataset_id": dataset_json["id"], "images": self.images},
+            content_type="multipart/form-data",
+        )
+
+        rv = self.client().delete("/admin/datasets/item/1/")
         self.assertEqual(rv.status_code, 200)
-        #Check that item was deleted
-        res = self.client().get('admin/datasets/item/1/')
+        # Check that item was deleted
+        res = self.client().get("admin/datasets/item/1/")
         self.assertEqual(res.status_code, 404)
 
     def test_get_users(self):
         """Test if API can retrieve all users"""
         for user in self.user_data:
-            res = self.client().post('/auth/register/', data=user)
+            res = self.client().post("/auth/register/", data=user)
             # get the results returned in json format
             self.assertEqual(res.status_code, 201)
 
@@ -123,45 +159,51 @@ class AuthTestCase(unittest.TestCase):
     def test_post_assign_user_datasets(self):
         """Test if API can assign datasets to a user"""
         # Create user
-        res = self.client().post('/auth/register/', data=self.user_data[0])
+        res = self.client().post("/auth/register/", data=self.user_data[0])
         self.assertEqual(res.status_code, 201)
         # Create Dataset
-        res1 = self.client().post('/admin/datasets/', data=self.dataset)
+        res1 = self.client().post("/admin/datasets/", data=self.dataset)
         self.assertEqual(res.status_code, 201)
         # Assign user a dataset
-        rv = self.client().post('/admin/users/1/assignments/', data={"dataset_id":"1"})
+        rv = self.client().post("/admin/users/1/assignments/", data={"dataset_id": "1"})
         self.assertEqual(rv.status_code, 201)
         self.assertIn("Cervical Infection", str(rv.data))
 
     def test_retract_user_dataset_assignment(self):
         """Test if API can remove user dataset assignment"""
         # Create user
-        res = self.client().post('/auth/register/', data=self.user_data[0])
+        res = self.client().post("/auth/register/", data=self.user_data[0])
         self.assertEqual(res.status_code, 201)
         # Create Dataset
-        res1 = self.client().post('/admin/datasets/', data=self.dataset)
+        res1 = self.client().post("/admin/datasets/", data=self.dataset)
         self.assertEqual(res.status_code, 201)
         # Assign dataset
-        res2 = self.client().post('/admin/users/1/assignments/', data={"dataset_id":"1"})
+        res2 = self.client().post(
+            "/admin/users/1/assignments/", data={"dataset_id": "1"}
+        )
         self.assertEqual(res2.status_code, 201)
         # Delete assignment
-        rv = self.client().delete('/admin/users/1/assignments/', data={"dataset_id": "1"})
+        rv = self.client().delete(
+            "/admin/users/1/assignments/", data={"dataset_id": "1"}
+        )
         self.assertEqual(rv.status_code, 200)
         self.assertIn("Message", str(rv.data))
 
-        result = self.client().get('/admin/users/datasets/1/', data={"user_id": "1"})
+        result = self.client().get("/admin/users/datasets/1/", data={"user_id": "1"})
         self.assertEqual(result.status_code, 404)
 
     def test_get_all_user_dataset_assignments(self):
         """Test if API can retrieve all user dataset assignments"""
         # Create user
-        res = self.client().post('/auth/register/', data=self.user_data[0])
+        res = self.client().post("/auth/register/", data=self.user_data[0])
         self.assertEqual(res.status_code, 201)
         # Create Dataset
-        res1 = self.client().post('/admin/datasets/', data=self.dataset)
+        res1 = self.client().post("/admin/datasets/", data=self.dataset)
         self.assertEqual(res1.status_code, 201)
         # Assign dataset
-        res2 = self.client().post('/admin/users/1/assignments/', data={"dataset_id": "1"})
+        res2 = self.client().post(
+            "/admin/users/1/assignments/", data={"dataset_id": "1"}
+        )
         self.assertEqual(res2.status_code, 201)
 
         rv = self.client().get("/admin/users/1/assignments/")
@@ -171,16 +213,18 @@ class AuthTestCase(unittest.TestCase):
     def test_get_user_stats(self):
         """Test if API can retrieve admin's statistics summary"""
         # Create user
-        res = self.client().post('/auth/register/', data=self.user_data[0])
+        res = self.client().post("/auth/register/", data=self.user_data[0])
         self.assertEqual(res.status_code, 201)
         # Create Dataset
-        res1 = self.client().post('/admin/datasets/', data=self.dataset)
+        res1 = self.client().post("/admin/datasets/", data=self.dataset)
         self.assertEqual(res1.status_code, 201)
-         # Assign dataset
-        res2 = self.client().post('/admin/users/1/assignments/', data={"dataset_id": "1"})
+        # Assign dataset
+        res2 = self.client().post(
+            "/admin/users/1/assignments/", data={"dataset_id": "1"}
+        )
         self.assertEqual(res2.status_code, 201)
 
-        rv = self.client().get('/admin/1/home/')
+        rv = self.client().get("/admin/1/home/")
         self.assertEqual(rv.status_code, 200)
         self.assertIn("users", str(rv.data))
         self.assertIn("datasets", str(rv.data))
@@ -190,6 +234,7 @@ class AuthTestCase(unittest.TestCase):
         with self.app.app_context():
             db.session.remove()
             db.drop_all()
+
 
 if __name__ == "__main__":
     unittest.main()
