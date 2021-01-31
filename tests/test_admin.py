@@ -1,5 +1,6 @@
-import unittest
 import json
+import unittest
+
 from application import create_app, db
 
 
@@ -29,11 +30,11 @@ class AuthTestCase(unittest.TestCase):
             db.create_all()
 
     def register_admin(
-        self,
-        email="admin@test.com",
-        password="test1234",
-        is_admin="admin",
-        username="Admin",
+            self,
+            email="admin@test.com",
+            password="test1234",
+            is_admin="admin",
+            username="Admin",
     ):
         """Helper method for registering admin"""
         admin_data = {
@@ -74,9 +75,11 @@ class AuthTestCase(unittest.TestCase):
         access_token = json.loads(login_res.data.decode())["access_token"]
         is_admin = bool(json.loads(login_res.data.decode())["is_admin"])
 
-        res = self.client().post("/admin/datasets/", data=self.dataset, headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+        res = self.client().post("/admin/datasets/", data=self.dataset,
+                                 headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
         self.assertEqual(res.status_code, 201)
-        res = self.client().get("/admin/datasets/", headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+        res = self.client().get("/admin/datasets/",
+                                headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
         self.assertEqual(res.status_code, 200)
         self.assertIn("Cervical Infection", str(res.data))
 
@@ -88,10 +91,12 @@ class AuthTestCase(unittest.TestCase):
         access_token = json.loads(login_res.data.decode())["access_token"]
         is_admin = bool(json.loads(login_res.data.decode())["is_admin"])
 
-        res = self.client().post("/admin/datasets/", data=self.dataset, headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+        res = self.client().post("/admin/datasets/", data=self.dataset,
+                                 headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
         self.assertEqual(res.status_code, 201)
         json_res = json.loads(res.data.decode("utf-8").replace("'", '"'))
-        result = self.client().get("/admin/datasets/{}".format(json_res["id"]), headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+        result = self.client().get("/admin/datasets/{}".format(json_res["id"]),
+                                   headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
         self.assertEqual(result.status_code, 200)
         self.assertIn("Cervical Infection", str(result.data))
         self.assertIn("progress", str(result.data))
@@ -104,17 +109,19 @@ class AuthTestCase(unittest.TestCase):
         access_token = json.loads(login_res.data.decode())["access_token"]
         is_admin = bool(json.loads(login_res.data.decode())["is_admin"])
 
-        res = self.client().post("/admin/datasets/", data=self.dataset, headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+        res = self.client().post("/admin/datasets/", data=self.dataset,
+                                 headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
         self.assertEqual(res.status_code, 201)
         put_res = self.client().put(
             "/admin/datasets/1",
             data={
                 "name": "COVID Ultrasound",
                 "classes": ["Positive", "Negative", "Not Sure"],
-            }, data=self.dataset, headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin)
+            }, headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin)
         )
         self.assertEqual(put_res.status_code, 200)
-        results = self.client().get("/admin/datasets/1", headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+        results = self.client().get("/admin/datasets/1",
+                                    headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
         self.assertIn("COVID Ultrasound", str(results.data))
 
     def test_dataset_deletion(self):
@@ -133,9 +140,11 @@ class AuthTestCase(unittest.TestCase):
             }, headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin)
         )
         self.assertEqual(res.status_code, 201)
-        delete_res = self.client().delete("/admin/datasets/1", headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+        delete_res = self.client().delete("/admin/datasets/1",
+                                          headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
         self.assertEqual(delete_res.status_code, 200)
-        result = self.client().get("/admin/datasets/1", headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+        result = self.client().get("/admin/datasets/1",
+                                   headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
         self.assertEqual(result.status_code, 404)
 
     def tearDown(self):
