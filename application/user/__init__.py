@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify, abort
 from application.models import Image, Item, User, Assignment, Dataset
+from application.decorators import user_is_authenticated
 
 user_blueprint = Blueprint('user', __name__)
 
 @user_blueprint.route("/user/<int:user_id>/home/", methods=["GET"])
+@user_is_authenticated()
 def get_user_stats(user_id, **kwargs):
     datasets = Assignment.query.filter_by(user_id=user_id).count()
     items = Item.query.filter_by(labelled_by=user_id)
@@ -11,7 +13,7 @@ def get_user_stats(user_id, **kwargs):
     images_count = 0
     for item in items:
         image_count = Image.query.filter_by(item_id=item.id).count()
-        item_count += image_count
+        images_count += image_count
     response = jsonify({
         "id": user_id,
         "name": user.username,
@@ -22,6 +24,7 @@ def get_user_stats(user_id, **kwargs):
     return response
 
 @user_blueprint.route("/user/<int:user_id>/datasets/", methods=["GET"])
+@user_is_authenticated()
 def get_user_datasets(user_id, *kwargs):
     assignments = Assignment.query.filter_by(user_id=user_id)
     datasets = []
@@ -41,6 +44,7 @@ def get_user_datasets(user_id, *kwargs):
     return response
 
 @user_blueprint.route("/user/datasets/item/<int:item_id>/", methods=["GET", "PUT"])
+@user_is_authenticated()
 def dataset_items_manipulation(item_id, **kwargs):
     item = Item.query.filter_by(id=item_id).first()
     label = str(request.data.get("label", ""))
@@ -85,6 +89,7 @@ def dataset_items_manipulation(item_id, **kwargs):
         response.status_code = 200
         return response
 @user_blueprint.route("/user/datasets/<int:dataset_id>/", methods=["GET"])
+@user_is_authenticated()
 def get_dataset_items(dataset_id):
     dataset = Dataset.query.filter_by(id=dataset_id).first()
     items = Item.query.filter_by(dataset_id=dataset_id)
