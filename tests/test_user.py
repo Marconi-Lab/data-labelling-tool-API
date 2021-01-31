@@ -50,10 +50,31 @@ class AuthTestCase(unittest.TestCase):
         }
         return self.client().post("/auth/register/", data=admin_data)
 
+    def register_user(
+            self,
+            email="user@test.com",
+            password="test1234",
+            is_admin="",
+            username="User",
+    ):
+        """Helper method for registering admin"""
+        user_data = {
+            "email": email,
+            "password": password,
+            "is_admin": is_admin,
+            "username": username,
+        }
+        return self.client().post("/auth/register/", data=user_data)
+
     def login_admin(self, email="admin@test.com", password="test1234"):
         """Helper method for admin log in"""
         admin_data = {"email": email, "password": password}
         return self.client().post("/auth/login/", data=admin_data)
+
+    def login_user(self, email="user@test.com", password="test1234"):
+        """Helper method for admin log in"""
+        user_data = {"email": email, "password": password}
+        return self.client().post("/auth/login/", data=user_data
 
     def test_get_user_stats(self):
         """Test if API can retrieve user's statistics summary"""
