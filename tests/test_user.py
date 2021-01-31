@@ -77,6 +77,15 @@ class AuthTestCase(unittest.TestCase):
         user_data = {"email": email, "password": password}
         return self.client().post("/auth/login/", data=user_data)
 
+    def admin_headers(self):
+        self.register_admin()
+        login_res = self.login_admin()
+        self.assertEqual(login_res.status_code, 200)
+        access_token = json.loads(login_res.data.decode())["access_token"]
+        is_admin = bool(json.loads(login_res.data.decode())["is_admin"])
+        user_id = json.loads(login_res.data.decode())["id"]
+        return dict(Authorization="Bearer " + access_token, is_admin=is_admin, user_id=user_id)
+
     def user_headers(self):
         self.register_user()
         login_res = self.login_user()
@@ -98,22 +107,17 @@ class AuthTestCase(unittest.TestCase):
 
     def test_get_user_datasets(self):
         """Test if API can retrieve user assigned datasets"""
-        self.register_admin()
-        login_res = self.login_admin()
-        self.assertEqual(login_res.status_code, 200)
-        access_token = json.loads(login_res.data.decode())["access_token"]
-        is_admin = bool(json.loads(login_res.data.decode())["is_admin"])
 
         # Create user
         res = self.client().post('/auth/register/', data=self.user_data)
         self.assertEqual(res.status_code, 201)
         # Create Dataset
         res1 = self.client().post('/admin/datasets/', data=self.dataset,
-                                  headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+                                  headers=self.admin_headers())
         self.assertEqual(res1.status_code, 201)
         # Assign dataset
         res2 = self.client().post('/admin/users/1/assignments/', data={"dataset_id": "1"},
-                                  headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+                                  headers=self.admin_headers())
         self.assertEqual(res2.status_code, 201)
 
         rv = self.client().get("/user/1/datasets/", headers=self.user_headers())
@@ -122,18 +126,13 @@ class AuthTestCase(unittest.TestCase):
 
     def test_user_get_dataset_items(self):
         """Test if API can retrieve all data items in a specific class"""
-        self.register_admin()
-        login_res = self.login_admin()
-        self.assertEqual(login_res.status_code, 200)
-        access_token = json.loads(login_res.data.decode())["access_token"]
-        is_admin = bool(json.loads(login_res.data.decode())["is_admin"])
 
         # Create user
         res = self.client().post('/auth/register/', data=self.user_data)
         self.assertEqual(res.status_code, 201)
         # Upload dataset
         dataset_res = self.client().post('/admin/datasets/', data=self.dataset,
-                                         headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+                                         headers=self.admin_headers())
         self.assertEqual(dataset_res.status_code, 201)
         dataset_json = json.loads(dataset_res.data.decode())
 
@@ -141,7 +140,7 @@ class AuthTestCase(unittest.TestCase):
         item_res = self.client().post('/admin/datasets/item/',
                                       data={"dataset_id": dataset_json['id'], "images": self.images},
                                       content_type="multipart/form-data",
-                                      headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+                                      headers=self.admin_headers())
         self.assertEqual(item_res.status_code, 201)
         # Get items
         rv = self.client().get("/user/datasets/1/", data={"dataset_id": dataset_json["id"]},
@@ -152,18 +151,13 @@ class AuthTestCase(unittest.TestCase):
 
     def test_item_get_with_id(self):
         """Test if API can get item by it's id"""
-        self.register_admin()
-        login_res = self.login_admin()
-        self.assertEqual(login_res.status_code, 200)
-        access_token = json.loads(login_res.data.decode())["access_token"]
-        is_admin = bool(json.loads(login_res.data.decode())["is_admin"])
 
         # Create user
         res = self.client().post('/auth/register/', data=self.user_data)
         self.assertEqual(res.status_code, 201)
         # Upload dataset
         dataset_res = self.client().post('/admin/datasets/', data=self.dataset,
-                                         headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+                                         headers=self.admin_headers())
         self.assertEqual(dataset_res.status_code, 201)
         dataset_json = json.loads(dataset_res.data.decode())
 
@@ -171,7 +165,7 @@ class AuthTestCase(unittest.TestCase):
         item_res = self.client().post('/admin/datasets/item/',
                                       data={"dataset_id": dataset_json['id'], "images": self.images},
                                       content_type="multipart/form-data",
-                                      headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+                                      headers=self.admin_headers())
         item_json = json.loads(item_res.data.decode())
         # Retrieve item with id
         rv = self.client().get('/user/datasets/item/1/', headers=self.user_headers())
@@ -181,18 +175,12 @@ class AuthTestCase(unittest.TestCase):
 
     def test_user_label_item(self):
         """Test if API can label item"""
-        self.register_admin()
-        login_res = self.login_admin()
-        self.assertEqual(login_res.status_code, 200)
-        access_token = json.loads(login_res.data.decode())["access_token"]
-        is_admin = bool(json.loads(login_res.data.decode())["is_admin"])
-
         # Create user
         res = self.client().post('/auth/register/', data=self.user_data)
         self.assertEqual(res.status_code, 201)
         # Upload dataset
         dataset_res = self.client().post('/admin/datasets/', data=self.dataset,
-                                         headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+                                         headers=self.admin_headers())
         self.assertEqual(dataset_res.status_code, 201)
         dataset_json = json.loads(dataset_res.data.decode())
 
@@ -200,7 +188,7 @@ class AuthTestCase(unittest.TestCase):
         item_res = self.client().post('/admin/datasets/item/',
                                       data={"dataset_id": dataset_json['id'], "images": self.images},
                                       content_type="multipart/form-data",
-                                      headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+                                      headers=self.admin_headers())
         item_json = json.loads(item_res.data.decode())
         # Retrieve item with id
         rv = self.client().put('/user/datasets/item/1/',
