@@ -13,6 +13,7 @@ db = SQLAlchemy()
 
 def create_app(config_name):
     from application.models import Dataset, User, Item
+    from application.decorators import permission_required
 
     app = FlaskAPI(__name__, instance_relative_config=True)
     app.config.from_object(app_config[config_name])
@@ -22,6 +23,7 @@ def create_app(config_name):
     db.init_app(app)
 
     @app.route('/admin/datasets/', methods=["POST", "GET"])
+    @permission_required()
     def datasets():
         if request.method == "POST":
             name = str(request.data.get("name", ''))
@@ -69,6 +71,7 @@ def create_app(config_name):
 
 
     @app.route('/admin/datasets/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+    @permission_required()
     def dataset_manipulation(id, **kwargs):
 
         dataset = Dataset.query.filter_by(id=id).first()

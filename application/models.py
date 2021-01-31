@@ -49,7 +49,7 @@ class User(db.Model):
     email = db.Column(db.String(255), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
     username = db.Column(db.String(100), nullable=False)
-    is_admin = db.Column(db.Boolean())
+    is_admin = db.Column(db.String)
 
     def __init__(self, email, password, username, is_admin):
         """Initialize the user with an email, username and a password"""
@@ -120,7 +120,7 @@ class Item(db.Model):
     name = db.Column(db.String(255))
     label = db.Column(db.String(255))
     comment = db.Column(db.String(255))
-    labelled = db.Column(db.Boolean())
+    labelled = db.Column(db.Boolean)
     labelled_by = db.Column(db.Integer, db.ForeignKey(User.id, ondelete="CASCADE"))
 
     def __init__(self, dataset_id, name):
