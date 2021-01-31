@@ -1,7 +1,8 @@
-import unittest
-import json
-from application import create_app, db
 import io
+import json
+import unittest
+
+from application import create_app, db
 
 
 class AuthTestCase(unittest.TestCase):
@@ -74,15 +75,23 @@ class AuthTestCase(unittest.TestCase):
     def login_user(self, email="user@test.com", password="test1234"):
         """Helper method for admin log in"""
         user_data = {"email": email, "password": password}
-        return self.client().post("/auth/login/", data=user_data
+        return self.client().post("/auth/login/", data=user_data)
+
+    def user_headers(self):
+        self.register_user()
+        login_res = self.login_user()
+        self.assertEqual(login_res.status_code, 200)
+        access_token = json.loads(login_res.data.decode())["access_token"]
+        is_admin = bool(json.loads(login_res.data.decode())["is_admin"])
+        return dict(Authorization="Bearer " + access_token, is_admin=is_admin)
 
     def test_get_user_stats(self):
         """Test if API can retrieve user's statistics summary"""
         # Create user
-        res = self.client().post('/auth/register/', data=self.user_data)
+        res = self.client().post('/auth/register/', data=self.user_data, headers=self.user_headers())
         self.assertEqual(res.status_code, 201)
 
-        rv = self.client().get('/user/1/home/')
+        rv = self.client().get('/user/1/home/', headers=self.user_headers())
         self.assertEqual(rv.status_code, 200)
         self.assertIn("images", str(rv.data))
         self.assertIn("datasets", str(rv.data))
@@ -103,10 +112,11 @@ class AuthTestCase(unittest.TestCase):
                                   headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
         self.assertEqual(res1.status_code, 201)
         # Assign dataset
-        res2 = self.client().post('/admin/users/1/assignments/', data={"dataset_id": "1"}, headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+        res2 = self.client().post('/admin/users/1/assignments/', data={"dataset_id": "1"},
+                                  headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
         self.assertEqual(res2.status_code, 201)
 
-        rv = self.client().get("/user/1/datasets/")
+        rv = self.client().get("/user/1/datasets/", headers=self.user_headers())
         self.assertEqual(rv.status_code, 200)
         self.assertIn("Cervical Infection", str(rv.data))
 
@@ -134,7 +144,8 @@ class AuthTestCase(unittest.TestCase):
                                       headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
         self.assertEqual(item_res.status_code, 201)
         # Get items
-        rv = self.client().get("/user/datasets/1/", data={"dataset_id": dataset_json["id"]})
+        rv = self.client().get("/user/datasets/1/", data={"dataset_id": dataset_json["id"]},
+                               headers=self.user_headers())
 
         self.assertEqual(rv.status_code, 200)
         self.assertIn("items", str(rv.data))
@@ -163,7 +174,7 @@ class AuthTestCase(unittest.TestCase):
                                       headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
         item_json = json.loads(item_res.data.decode())
         # Retrieve item with id
-        rv = self.client().get('/user/datasets/item/1/')
+        rv = self.client().get('/user/datasets/item/1/', headers=self.user_headers())
 
         self.assertEqual(rv.status_code, 200)
         self.assertIn("images", str(rv.data))
@@ -194,10 +205,10 @@ class AuthTestCase(unittest.TestCase):
         # Retrieve item with id
         rv = self.client().put('/user/datasets/item/1/',
                                data={"label": "not sure", "comment": "No comments", "labeller": "1"},
-                               headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+                               headers=self.user_headers())
         self.assertEqual(rv.status_code, 200)
         results = self.client().get("/user/datasets/item/1/",
-                                    headers=dict(Authorization="Bearer " + access_token, is_admin=is_admin))
+                                    headers=self.user_headers())
         self.assertIn("not sure", str(results.data))
 
     def tearDown(self):
