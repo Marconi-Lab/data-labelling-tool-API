@@ -51,12 +51,13 @@ class User(db.Model):
     username = db.Column(db.String(100), nullable=False)
     is_admin = db.Column(db.Boolean())
 
-    def __init__(self, email, password, username):
+    def __init__(self, email, password, username, is_admin):
         """Initialize the user with an email, username and a password"""
         self.email = email
         self.password = Bcrypt().generate_password_hash(password).decode()
         self.username = username
-
+        self.is_admin = is_admin
+        
     def password_is_valid(self, password):
         """Checks password against it's hash"""
         return Bcrypt().check_password_hash(self.password, password)
