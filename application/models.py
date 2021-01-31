@@ -89,7 +89,7 @@ class User(db.Model):
             jwt_string = jwt.encode(
                 payload,
                 current_app.config.get("SECRET"),
-                algorithm='HS256'
+                'HS256'
             )
             return jwt_string
         except Exception as e:
@@ -101,7 +101,7 @@ class User(db.Model):
         """Decodes the access token from the Authorization header."""
         try:
             # try to decode the token using our SECRET variable
-            payload = jwt.decode(token, current_app.config.get('SECRET'))
+            payload = jwt.decode(token, current_app.config.get('SECRET'), algorithms=['HS256'])
             return payload['sub']
         except jwt.ExpiredSignatureError:
             # the token is expired, return an error string
