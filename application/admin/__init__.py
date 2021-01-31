@@ -1,11 +1,13 @@
 from flask import Blueprint, request, jsonify, abort
 from application.models import Image, Item, User, Assignment, Dataset
+from application.decorators import permission_required
 
 admin_blueprint = Blueprint('admin', __name__)
 
 from . import admin_views
 
 @admin_blueprint.route("/admin/datasets/item/", methods=["GET"])
+@permission_required
 def item():
     try:
         #GET request
@@ -39,6 +41,7 @@ def item():
     return response
 
 @admin_blueprint.route("/admin/datasets/item/<int:id>/", methods=["GET", "DELETE"])
+@permission_required
 def item_manipulation(id, **kwargs):
 
     dataset_id = str(request.data.get("dataset_id", ""))
@@ -70,6 +73,7 @@ def item_manipulation(id, **kwargs):
         return response
 
 @admin_blueprint.route("/admin/users/", methods=["GET"])
+@permission_required
 def user():
     #GET request
     users = User.get_all()
@@ -86,6 +90,7 @@ def user():
     return response
 
 @admin_blueprint.route("/admin/users/datasets/<int:dataset_id>/", methods=["GET"])
+@permission_required
 def user_datasets(dataset_id, **kwargs):
     user_id = str(request.data.get("user_id", ""))
     user_assignment = Assignment.query.filter_by(dataset_id=int(dataset_id), user_id=int(user_id)).first()
@@ -102,6 +107,7 @@ def user_datasets(dataset_id, **kwargs):
     return response
 
 @admin_blueprint.route("/admin/users/<int:user_id>/assignments/", methods=["POST", "GET", "DELETE"])
+@permission_required
 def user_assignments_manipulation(user_id, **kwargs):
     # assigment = Assignment.query.filter_by()
     if request.method == "POST":
@@ -153,6 +159,7 @@ def user_assignments_manipulation(user_id, **kwargs):
         return response
 
 @admin_blueprint.route('/admin/<int:id>/home/', methods=["GET"])
+@permission_required
 def admin_stats(id, **kwargs):
     admin = User.query.filter_by(id=id).first()
     users = User.count_all()
