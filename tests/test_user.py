@@ -92,7 +92,8 @@ class AuthTestCase(unittest.TestCase):
         self.assertEqual(login_res.status_code, 200)
         access_token = json.loads(login_res.data.decode())["access_token"]
         is_admin = bool(json.loads(login_res.data.decode())["is_admin"])
-        return dict(Authorization="Bearer " + access_token, is_admin=is_admin)
+        user_id = json.loads(login_res.data.decode())["id"]
+        return dict(Authorization="Bearer " + access_token, is_admin=is_admin, user_id=user_id)
 
     def test_get_user_stats(self):
         """Test if API can retrieve user's statistics summary"""
