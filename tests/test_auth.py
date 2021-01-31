@@ -15,7 +15,8 @@ class AuthTestCase(unittest.TestCase):
         self.user_data = {
             'username': "Admin",
             'email': 'test@example.com',
-            'password': 'test_password'
+            'password': 'test_password',
+            "is_admin": True
         }
 
         with self.app.app_context():
