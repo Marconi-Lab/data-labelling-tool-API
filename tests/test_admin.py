@@ -26,6 +26,24 @@ class AuthTestCase(unittest.TestCase):
             #create all tables
             db.create_all()
 
+    def register_admin(self, email="admin@test.com", password="test1234", is_admin=True, username="Admin"):
+        """Helper method for registering admin"""
+        admin_data = {
+            "email": email,
+            "password": password,
+            "is_admin": is_admin,
+            "username": username
+        }
+        return self.client().post("/auth/register/", data=admin_data)
+
+    def login_user(self, email="admin@test.com", password="test1234"):
+        """Helper method for admin log in"""
+        admin_data ={
+            "email": email,
+            "password": password
+        }
+        return self.client().post("/auth/login/", data=admin_data)
+        
     def test_dataset_creation(self):
         """Test if API can create a dataset. (POST request)"""
         res = self.client().post('/admin/datasets/', data=self.dataset)
