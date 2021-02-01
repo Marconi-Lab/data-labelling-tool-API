@@ -39,9 +39,14 @@ def item():
         else:
             #  POST Request
             name = str(request.data.get("name", ''))
-
+            classes = request.data.getlist("classes")
             if name:
                 item = Item(name=name, dataset_id=dataset_id)
+                dataset = Dataset.query.filter_by(id=dataset_id).first()
+                if not dataset:
+                    abort(404)
+                dataset.classes2 = classes
+                dataset.save()
                 item.save()
                 response = jsonify({
                     "id": item.id,

@@ -13,6 +13,7 @@ class Dataset(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
     classes = db.Column(db.ARRAY(db.String))
+    classes2 = db.Column(db.ARRAY(db.String))
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
 

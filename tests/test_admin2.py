@@ -93,12 +93,18 @@ class AuthTestCase(unittest.TestCase):
 
         item_res = self.client().post(
             "/admin/datasets/item/",
-            data={"dataset_id": dataset_json["id"], "name": "item"},
+            data={"dataset_id": dataset_json["id"], "name": "item", "classes": ["acid", "no acid"]},
             headers=self.admin_headers()
         )
 
         self.assertEqual(item_res.status_code, 201)
         self.assertIn("Item was successfully added", str(item_res.data))
+
+        data_res = self.client().get(
+            "/admin/datasets/1/", headers=self.admin_headers()
+        )
+
+        self.assertIn("acid", str(data_res.data))
 
     def test_item_get(self):
         """Test if API can retrieve items"""

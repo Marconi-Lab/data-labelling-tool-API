@@ -90,7 +90,7 @@ class AuthTestCase(unittest.TestCase):
                                  headers=self.admin_headers())
         self.assertEqual(res.status_code, 201)
         json_res = json.loads(res.data.decode("utf-8").replace("'", '"'))
-        result = self.client().get("/admin/datasets/{}".format(json_res["id"]),
+        result = self.client().get("/admin/datasets/{}/".format(json_res["id"]),
                                    headers=self.admin_headers())
         self.assertEqual(result.status_code, 200)
         self.assertIn("Cervical Infection", str(result.data))
@@ -102,14 +102,14 @@ class AuthTestCase(unittest.TestCase):
                                  headers=self.admin_headers())
         self.assertEqual(res.status_code, 201)
         put_res = self.client().put(
-            "/admin/datasets/1",
+            "/admin/datasets/1/",
             data={
                 "name": "COVID Ultrasound",
                 "classes": ["Positive", "Negative", "Not Sure"],
             }, headers=self.admin_headers()
         )
         self.assertEqual(put_res.status_code, 200)
-        results = self.client().get("/admin/datasets/1",
+        results = self.client().get("/admin/datasets/1/",
                                     headers=self.admin_headers())
         self.assertIn("COVID Ultrasound", str(results.data))
 
@@ -124,10 +124,10 @@ class AuthTestCase(unittest.TestCase):
             }, headers=self.admin_headers()
         )
         self.assertEqual(res.status_code, 201)
-        delete_res = self.client().delete("/admin/datasets/1",
+        delete_res = self.client().delete("/admin/datasets/1/",
                                           headers=self.admin_headers())
         self.assertEqual(delete_res.status_code, 200)
-        result = self.client().get("/admin/datasets/1",
+        result = self.client().get("/admin/datasets/1/",
                                    headers=self.admin_headers())
         self.assertEqual(result.status_code, 404)
 

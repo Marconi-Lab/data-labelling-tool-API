@@ -60,6 +60,7 @@ def create_app(config_name):
                     "id": dataset.id,
                     "name": dataset.name,
                     "classes": dataset.classes,
+                    "classes2": dataset.classes2,
                     "progress": progress,
                     "date_created": dataset.date_created,
                     "date_modified": dataset.date_modified 
@@ -70,7 +71,7 @@ def create_app(config_name):
             return response
 
 
-    @app.route('/admin/datasets/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+    @app.route('/admin/datasets/<int:id>/', methods=['GET', 'PUT', 'DELETE'])
     @permission_required()
     def dataset_manipulation(id, **kwargs):
 
@@ -112,6 +113,7 @@ def create_app(config_name):
                 "id": dataset.id,
                 "name": dataset.name,
                 "classes": dataset.classes,
+                "classes2": dataset.classes2,
                 "progress": progress,
                 "date_created": dataset.date_created,
                 "date_modified": dataset.date_modified
