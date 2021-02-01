@@ -10,6 +10,8 @@ def get_user_stats(user_id, **kwargs):
     datasets = Assignment.query.filter_by(user_id=user_id).count()
     items = Item.query.filter_by(labelled_by=user_id)
     user = User.query.filter_by(id=user_id).first()
+    if not datasets and items and user:
+        abort(404)
     images_count = 0
     for item in items:
         image_count = Image.query.filter_by(item_id=item.id).count()
@@ -47,6 +49,8 @@ def get_user_datasets(user_id, *kwargs):
 @user_is_authenticated()
 def dataset_items_manipulation(item_id, **kwargs):
     item = Item.query.filter_by(id=item_id).first()
+    if not item:
+        abort(404)
     label = str(request.data.get("label", ""))
     comment = str(request.data.get("comment", ""))
     labeller = str(request.data.get("labeller", ""))
@@ -92,7 +96,11 @@ def dataset_items_manipulation(item_id, **kwargs):
 @user_is_authenticated()
 def get_dataset_items(dataset_id):
     dataset = Dataset.query.filter_by(id=dataset_id).first()
+    if not dataset:
+        abort(404)
     items = Item.query.filter_by(dataset_id=dataset_id)
+    if not items:
+        abort(404)
     data_items = list()
 
     for item in items:
@@ -112,3 +120,21 @@ def get_dataset_items(dataset_id):
     })
     response.status_code = 200
     return response
+
+@user_blueprint.route("/user/images/<int:image_id>/", methods=["GET", "PUT"])
+def manipulate_images(image_id):
+    if request.method == "GET":
+        image = Image.query.filter_by(id=image_id).first()
+        if not image:
+            abort(404)
+        response = jsonify({
+            "id": image.id,
+            "image": image.image_URL,
+            "label": image.label,
+            "labelled": image.labelled,
+            "labelled_by": image.labelled_by,
+            "dataset_id": image.dataset_id,
+            "item_id": image.item_id
+        })
+        response.status_code = 200
+        return response

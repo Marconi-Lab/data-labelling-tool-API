@@ -211,9 +211,10 @@ class AuthTestCase(unittest.TestCase):
 
         # Upload item
         image_res = self.client().post('/admin/datasets/images/',
-                                      data={"dataset_id": dataset_json["id"], "images": self.image},
+                                      data={"dataset_id": dataset_json["id"], "image": self.image},
                                       content_type="multipart/form-data",
                                       headers=self.admin_headers())
+        self.assertEqual(image_res.status_code, 201)
         # Retrieve item with id
         rv = self.client().get('/user/images/1/', headers=self.user_headers())
 
