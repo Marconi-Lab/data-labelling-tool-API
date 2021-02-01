@@ -18,11 +18,12 @@ class AuthTestCase(unittest.TestCase):
             "name": "Cervical Infection",
             "classes": ["Positive", "Negative", "Not Sure"],
         }
+        self.image = (io.BytesIO(b"abcdef"), "test4.jpg")
         self.images = [
             (io.BytesIO(b"abcdef"), "test.jpg"),
             (io.BytesIO(b"abcdef"), "test1.jpg"),
             (io.BytesIO(b"abcdef"), "test3.jpg"),
-            (io.BytesIO(b"abcdef"), "test4.jpg"),
+            (io.BytesIO(b"abcdef"), "test5.jpg"),
         ]
         self.user_data = [
             {
@@ -303,16 +304,57 @@ class AuthTestCase(unittest.TestCase):
 
         image_res = self.client().post(
             "/admin/datasets/item/1/",
-            data={"dataset_id": item_json["id"], "images": self.images},
+            data={"item_id": item_json["id"], "images": self.images},
             content_type="multipart/form-data",
             headers=self.admin_headers()
         )
 
         self.assertEqual(image_res.status_code, 201)
-        self.assertIn("Item was successfully added", str(item_res.data))
+        self.assertIn("Images were successfully added", str(image_res.data))
 
     # Test image upload to dataset
-    # Test image labelling
+    def test_admin_can_upload_image_to_dataset(self):
+        """Test if admin can upload image to a dataset"""
+        # Upload dataset
+        dataset_res = self.client().post("/admin/datasets/", data=self.dataset,
+                                         headers=self.admin_headers())
+        self.assertEqual(dataset_res.status_code, 201)
+        dataset_json = json.loads(dataset_res.data.decode())
+
+        image_res = self.client().post(
+            "/admin/datasets/images/",
+            data={"dataset_id": dataset_json["id"], "images": self.image},
+            content_type="multipart/form-data",
+            headers=self.admin_headers()
+        )
+
+        self.assertEqual(image_res.status_code, 201)
+        self.assertIn("Image was successfully added", str(image_res.data))
+
+    def test_admin_can_delete_image_by_id(self):
+        """Test if admin can delete image by id"""
+        # Upload dataset
+        dataset_res = self.client().post("/admin/datasets/", data=self.dataset,
+                                         headers=self.admin_headers())
+        self.assertEqual(dataset_res.status_code, 201)
+        dataset_json = json.loads(dataset_res.data.decode())
+
+        image_res = self.client().post(
+            "/admin/datasets/images/",
+            data={"dataset_id": dataset_json["id"], "images": self.image},
+            content_type="multipart/form-data",
+            headers=self.admin_headers()
+        )
+
+        self.assertEqual(image_res.status_code, 201)
+
+        rv = self.client().delete("/admin/images/1/",
+                                  headers=self.admin_headers())
+        self.assertEqual(rv.status_code, 200)
+        # Check that item was deleted
+        res = self.client().get("user/images/1/",
+                                headers=self.user_headers())
+        self.assertEqual(res.status_code, 404)
 
     def tearDown(self):
         """teardown all initialized variables"""

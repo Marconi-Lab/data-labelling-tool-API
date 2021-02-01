@@ -161,11 +161,12 @@ class Image(db.Model):
     labelled_by = db.Column(db.Integer, db.ForeignKey(User.id, ondelete="CASCADE"))
     dataset_id = db.Column(db.Integer, db.ForeignKey(Dataset.id, ondelete="CASCADE"))
 
-    def __init__(self, item_id, image_URL, name):
+    def __init__(self, item_id, image_URL, dataset_id, name):
         """Initialize image with data item ID and image URL"""
         self.name = name
         self.item_id = item_id
         self.image_URL = image_URL
+        self.dataset_id = dataset_id
 
     def save(self):
         """Save an image"""
