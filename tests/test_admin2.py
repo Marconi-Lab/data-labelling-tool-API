@@ -284,6 +284,36 @@ class AuthTestCase(unittest.TestCase):
         self.assertIn("users", str(rv.data))
         self.assertIn("datasets", str(rv.data))
 
+        # Test images upload to folder
+
+    def test_admin_can_upload_images_to_item(self):
+        """Test if API can upload images to item (Folder)"""
+        # Upload dataset
+        dataset_res = self.client().post("/admin/datasets/", data=self.dataset,
+                                         headers=self.admin_headers())
+        self.assertEqual(dataset_res.status_code, 201)
+        dataset_json = json.loads(dataset_res.data.decode())
+
+        # Create item (Folder)
+        item_res = self.client().post("/admin/datasets/item/",
+                                      data=dict(dataset_id=dataset_json["id"], name="item_name"),
+                                      headers=self.admin_headers())
+        self.assertEqual(item_res.status_code, 201)
+        item_json = json.loads(item_res.data.decode())
+
+        image_res = self.client().post(
+            "/admin/datasets/item/1/",
+            data={"dataset_id": item_json["id"], "images": self.images},
+            content_type="multipart/form-data",
+            headers=self.admin_headers()
+        )
+
+        self.assertEqual(image_res.status_code, 201)
+        self.assertIn("Item was successfully added", str(item_res.data))
+
+    # Test image upload to dataset
+    # Test image labelling
+
     def tearDown(self):
         """teardown all initialized variables"""
         with self.app.app_context():
