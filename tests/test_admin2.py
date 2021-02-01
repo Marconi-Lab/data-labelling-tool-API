@@ -93,8 +93,7 @@ class AuthTestCase(unittest.TestCase):
 
         item_res = self.client().post(
             "/admin/datasets/item/",
-            data={"dataset_id": dataset_json["id"], "images": self.images},
-            content_type="multipart/form-data",
+            data={"dataset_id": dataset_json["id"], "name": "item"},
             headers=self.admin_headers()
         )
 
