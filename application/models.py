@@ -156,6 +156,10 @@ class Image(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id, ondelete="CASCADE"))
     image_URL = db.Column(db.String)
+    label = db.Column(db.String)
+    labelled = db.Column(db.Boolean)
+    labelled_by = db.Column(db.Integer, db.ForeignKey(User.id, ondelete="CASCADE"))
+    dataset_id = db.Column(db.Integer, db.ForeignKey(Dataset.id, ondelet="CASCADE"))
 
     def __init__(self, item_id, image_URL, name):
         """Initialize image with data item ID and image URL"""
