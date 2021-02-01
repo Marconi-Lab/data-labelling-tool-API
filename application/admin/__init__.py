@@ -2,38 +2,55 @@ from flask import Blueprint, request, jsonify, abort, url_for
 from application.models import Image, Item, User, Assignment, Dataset
 from application.decorators import permission_required
 from werkzeug.utils import secure_filename
-import random
-import string
 import os
+import application as app
+
+from dotenv import load_dotenv
+load_dotenv()
 
 admin_blueprint = Blueprint('admin', __name__)
 
-from . import admin_views
-
-@admin_blueprint.route("/admin/datasets/item/", methods=["GET"])
+@admin_blueprint.route("/admin/datasets/item/", methods=["GET", "POST"])
 @permission_required()
 def item():
     try:
         #GET request
         dataset_id = str(request.data.get("dataset_id", ""))
-        items = Item.get_all(dataset_id)
-        results = []
+        if request.method == "GET":
+            items = Item.get_all(dataset_id)
+            results = []
 
-        for item in items:
-            images = Image.get_all(item.id)
-            image_URLs = [i.image_URL for i in images]
-            obj = {
-                "dataset_id": dataset_id,
-                "id": item.id,
-                "name": item.name,
-                "images_URLs": image_URLs,
-                "label": item.label,
-                "comment": item.comment,
-                "labelled": item.labelled
-            }
-            results.append(obj)
-        response = jsonify(results)
-        response.status_code = 200
+            for item in items:
+                images = Image.get_all(item.id)
+                image_URLs = [i.image_URL for i in images]
+                obj = {
+                    "dataset_id": dataset_id,
+                    "id": item.id,
+                    "name": item.name,
+                    "images_URLs": image_URLs,
+                    "label": item.label,
+                    "comment": item.comment,
+                    "labelled": item.labelled
+                }
+                results.append(obj)
+            response = jsonify(results)
+            response.status_code = 200
+            return response
+        else:
+            #  POST Request
+            name = str(request.data.get("name", ''))
+
+            if name:
+                item = Item(name=name, dataset_id=dataset_id)
+                item.save()
+                response = jsonify({
+                    "id": item.id,
+                    "name": item.name,
+                    "dataset_id": dataset_id,
+                    "Message": "Item was successfully added"
+                })
+                response.status_code = 201
+                return response
     except Exception as e:
         response  = {
             "Message": str(e)
@@ -42,7 +59,7 @@ def item():
         print("Response", response)
         print("================================================================")
         return response
-    return response
+
 
 @admin_blueprint.route("/admin/datasets/item/<int:id>/", methods=["GET", "DELETE"])
 @permission_required()
@@ -184,7 +201,7 @@ def allowed_file(filename):
     return filename in allowed_extensions
 
 
-@admin_blueprint.route("/admins/datasets/item/<int: item_id>/", methods=["POST"])
+@admin_blueprint.route("/admin/item/<int:item_id>/", methods=["POST"])
 def upload_images(item_id):
     try:
         images_list = request.files.getlist("images")
@@ -195,7 +212,8 @@ def upload_images(item_id):
                 image_name = secure_filename(image.filename)
                 image.save(os.path.join(uploads_dir, image_name))
                 image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=image_name, _external=True)
-                image_upload = Image(name=image_name, item_id=item_id, image_URL=image_url)
+                image_upload = Image(name=image_name, image_URL=image_url)
+                image_upload.item_id = item_id
                 image_upload.save()
                 obj = {
                     "id": image_upload.id,
@@ -204,7 +222,7 @@ def upload_images(item_id):
                 images.append(obj)
         response = jsonify({
             "message": "Images were successfully added",
-            "item_id": item.id,
+            "item_id": item_id,
             "images": images
         })
         response.status_code = 201
