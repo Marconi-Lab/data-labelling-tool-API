@@ -45,7 +45,7 @@ def get_user_datasets(user_id, *kwargs):
     response.status_code = 200
     return response
 
-@user_blueprint.route("/user/datasets/item/<int:item_id>/", methods=["GET", "PUT"])
+@user_blueprint.route("/user/item/<int:item_id>/", methods=["GET", "PUT"])
 @user_is_authenticated()
 def dataset_items_manipulation(item_id, **kwargs):
     item = Item.query.filter_by(id=item_id).first()

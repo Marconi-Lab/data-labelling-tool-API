@@ -10,7 +10,7 @@ load_dotenv()
 
 admin_blueprint = Blueprint('admin', __name__)
 
-@admin_blueprint.route("/admin/datasets/item/", methods=["GET", "POST"])
+@admin_blueprint.route("/admin/item/", methods=["GET", "POST"])
 @permission_required()
 def item():
     try:
@@ -66,7 +66,7 @@ def item():
         return response
 
 
-@admin_blueprint.route("/admin/datasets/item/<int:id>/", methods=["GET", "DELETE"])
+@admin_blueprint.route("/admin/item/<int:id>/", methods=["GET", "DELETE"])
 @permission_required()
 def item_manipulation(id, **kwargs):
 

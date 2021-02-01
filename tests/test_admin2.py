@@ -92,7 +92,7 @@ class AuthTestCase(unittest.TestCase):
         # Upload item
 
         item_res = self.client().post(
-            "/admin/datasets/item/",
+            "/admin/item/",
             data={"dataset_id": dataset_json["id"], "name": "item", "classes": ["acid", "no acid"]},
             headers=self.admin_headers()
         )
@@ -117,12 +117,12 @@ class AuthTestCase(unittest.TestCase):
 
         # Upload item
         item_res = self.client().post(
-            "/admin/datasets/item/",
+            "/admin/item/",
             data={"dataset_id": dataset_json["id"], "name": "item"},
             headers=self.admin_headers()
         )
         rv = self.client().get(
-            "/admin/datasets/item/",
+            "/admin/item/",
             data={"dataset_id": dataset_json["id"]},
             headers=self.admin_headers()
         )
@@ -141,14 +141,14 @@ class AuthTestCase(unittest.TestCase):
 
         # Upload item
         item_res = self.client().post(
-            "/admin/datasets/item/",
+            "/admin/item/",
             data={"dataset_id": dataset_json["id"], "name": "item"},
             headers=self.admin_headers()
         )
         item_json = json.loads(item_res.data.decode())
         # Retrieve item with id
         rv = self.client().get(
-            "/admin/datasets/item/1/",
+            "/admin/item/1/",
             data={"dataset_id": dataset_json["id"]},
             headers=self.admin_headers()
         )
@@ -167,16 +167,16 @@ class AuthTestCase(unittest.TestCase):
 
         # Upload item
         item_res = self.client().post(
-            "/admin/datasets/item/",
+            "/admin/item/",
             data={"dataset_id": dataset_json["id"], "name": "item"},
             headers=self.admin_headers()
         )
 
-        rv = self.client().delete("/admin/datasets/item/1/",
+        rv = self.client().delete("/admin/item/1/",
                                   headers=self.admin_headers())
         self.assertEqual(rv.status_code, 200)
         # Check that item was deleted
-        res = self.client().get("admin/datasets/item/1/",
+        res = self.client().get("admin/item/1/",
                                 headers=self.admin_headers())
         self.assertEqual(res.status_code, 404)
 
@@ -298,7 +298,7 @@ class AuthTestCase(unittest.TestCase):
         dataset_json = json.loads(dataset_res.data.decode())
 
         # Create item (Folder)
-        item_res = self.client().post("/admin/datasets/item/",
+        item_res = self.client().post("/admin/item/",
                                       data=dict(dataset_id=dataset_json["id"], name="item_name"),
                                       headers=self.admin_headers())
         self.assertEqual(item_res.status_code, 201)

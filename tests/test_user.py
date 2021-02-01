@@ -139,7 +139,7 @@ class AuthTestCase(unittest.TestCase):
         dataset_json = json.loads(dataset_res.data.decode())
 
         # Upload item
-        item_res = self.client().post('/admin/datasets/item/',
+        item_res = self.client().post('/admin/item/',
                                       data={"dataset_id": dataset_json['id'], "name": "item"},
                                       headers=self.admin_headers())
         self.assertEqual(item_res.status_code, 201)
@@ -163,12 +163,12 @@ class AuthTestCase(unittest.TestCase):
         dataset_json = json.loads(dataset_res.data.decode())
 
         # Upload item
-        item_res = self.client().post('/admin/datasets/item/',
+        item_res = self.client().post('/admin/item/',
                                       data={"dataset_id": dataset_json['id'], "name": "item"},
                                       headers=self.admin_headers())
         item_json = json.loads(item_res.data.decode())
         # Retrieve item with id
-        rv = self.client().get('/user/datasets/item/1/', headers=self.user_headers())
+        rv = self.client().get('/user/item/1/', headers=self.user_headers())
 
         self.assertEqual(rv.status_code, 200)
         self.assertIn("images", str(rv.data))
@@ -185,16 +185,16 @@ class AuthTestCase(unittest.TestCase):
         dataset_json = json.loads(dataset_res.data.decode())
 
         # Upload item
-        item_res = self.client().post('/admin/datasets/item/',
+        item_res = self.client().post('/admin/item/',
                                       data={"dataset_id": dataset_json['id'], "name":"item"},
                                       headers=self.admin_headers())
         item_json = json.loads(item_res.data.decode())
         # Retrieve item with id
-        rv = self.client().put('/user/datasets/item/1/',
+        rv = self.client().put('/user/item/1/',
                                data={"label": "not sure", "comment": "No comments", "labeller": "1"},
                                headers=self.user_headers())
         self.assertEqual(rv.status_code, 200)
-        results = self.client().get("/user/datasets/item/1/",
+        results = self.client().get("/user/item/1/",
                                     headers=self.user_headers())
         self.assertIn("not sure", str(results.data))
 
