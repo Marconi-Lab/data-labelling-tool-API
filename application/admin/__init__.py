@@ -1,6 +1,10 @@
-from flask import Blueprint, request, jsonify, abort
+from flask import Blueprint, request, jsonify, abort, url_for
 from application.models import Image, Item, User, Assignment, Dataset
 from application.decorators import permission_required
+from werkzeug.utils import secure_filename
+import random
+import string
+import os
 
 admin_blueprint = Blueprint('admin', __name__)
 
@@ -172,3 +176,43 @@ def admin_stats(id, **kwargs):
     })
     response.status_code = 200
     return response
+
+allowed_extensions = set(['image/jpeg', 'image/png', 'jpeg'])
+uploads_dir = os.path.join(os.path.dirname(app.__file__), os.environ.get("UPLOAD_FOLDER"))
+
+def allowed_file(filename):
+    return filename in allowed_extensions
+
+
+@admin_blueprint.route("/admins/datasets/item/<int: item_id>/", methods=["POST"])
+def upload_images(item_id):
+    try:
+        images_list = request.files.getlist("images")
+
+        images = list()
+        for image in images_list:
+            if image and allowed_file(image.content_type):
+                image_name = secure_filename(image.filename)
+                image.save(os.path.join(uploads_dir, image_name))
+                image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=image_name, _external=True)
+                image_upload = Image(name=image_name, item_id=item_id, image_URL=image_url)
+                image_upload.save()
+                obj = {
+                    "id": image_upload.id,
+                    "image": image_url
+                }
+                images.append(obj)
+        response = jsonify({
+            "message": "Images were successfully added",
+            "item_id": item.id,
+            "images": images
+        })
+        response.status_code = 201
+        return response
+    except Exception as e:
+        response = jsonify({
+            "message": str(e)
+        })
+        response.status_code = 500
+        print("Message: ", e)
+        return response
