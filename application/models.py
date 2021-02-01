@@ -170,6 +170,12 @@ class Image(db.Model):
         """Save an image"""
         db.session.add(self)
         db.session.commit()
+
+    def delete(self):
+        """Deletes an assigment record"""
+        db.session.delete(self)
+        db.session.commit()
+
     @staticmethod
     def get_all(item_id):
         """Return all images in a data item"""

@@ -262,3 +262,13 @@ def dataset_image_upload():
         response.status_code = 500
         print("Message: ", e)
         return response
+
+@admin_blueprint.route("/admin/images/<int:image_id>/", methods=["DELETE"])
+def delete_image(image_id):
+    image = Image.query.filter_by(id=image_id).first()
+    image.delete()
+    response = jsonify({
+        "Message": "Image {} successfully deleted".format(image_id)
+    })
+    response.status_code = 200
+    return response
