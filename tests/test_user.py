@@ -221,6 +221,34 @@ class AuthTestCase(unittest.TestCase):
         self.assertEqual(rv.status_code, 200)
         self.assertIn("image", str(rv.data))
 
+    def test_user_label_image(self):
+        """Test if user can label image"""
+        # Upload dataset
+        dataset_res = self.client().post('/admin/datasets/', data=self.dataset,
+                                         headers=self.admin_headers())
+        self.assertEqual(dataset_res.status_code, 201)
+        dataset_json = json.loads(dataset_res.data.decode())
+
+        # Upload image
+        item_res = self.client().post(
+            "/admin/datasets/images/",
+            data={"dataset_id": dataset_json["id"], "image": self.image},
+            content_type="multipart/form-data",
+            headers=self.admin_headers()
+        )
+        item_json = json.loads(item_res.data.decode())
+
+        # Retrieve item with id
+        rv = self.client().put('/user/images/1/',
+                               data={"label": "not sure", "labeller": "1"},
+                               headers=self.user_headers())
+        print("Response", rv.data)
+        self.assertEqual(rv.status_code, 200)
+        results = self.client().get("/user/images/1/",
+                                    headers=self.user_headers())
+        self.assertIn("not sure", str(results.data))
+
+
     def tearDown(self):
         """Teardown all initialized variables"""
         with self.app.app_context():

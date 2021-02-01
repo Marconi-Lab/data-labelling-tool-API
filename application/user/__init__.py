@@ -10,7 +10,7 @@ def get_user_stats(user_id, **kwargs):
     datasets = Assignment.query.filter_by(user_id=user_id).count()
     items = Item.query.filter_by(labelled_by=user_id)
     user = User.query.filter_by(id=user_id).first()
-    if not datasets and items and user:
+    if not user:
         abort(404)
     images_count = 0
     for item in items:
@@ -136,5 +136,24 @@ def manipulate_images(image_id):
             "dataset_id": image.dataset_id,
             "item_id": image.item_id
         })
+        response.status_code = 200
+        return response
+    else:
+        # PUT Request
+        label = request.data.get("label", "")
+        labeller = request.data.get("labeller", "")
+        image = Image.query.filter_by(id=image_id).first()
+        image.label = label
+        image.labelled_by = labeller
+        image.labelled = True
+        image.save()
+        response = jsonify(
+            {
+                "id": image.id,
+                "label": image.label,
+                "labelled": image.labelled,
+                "labelled_by": image.labelled_by
+            }
+        )
         response.status_code = 200
         return response
