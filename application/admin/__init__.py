@@ -234,3 +234,31 @@ def upload_images(item_id):
         response.status_code = 500
         print("Message: ", e)
         return response
+
+@admin_blueprint.route("/admin/datasets/images/", methods=["POST"])
+def dataset_image_upload():
+    try:
+        image = request.files["image"]
+        dataset_id = str(request.data.get("dataset_id", ""))
+        if image and allowed_file(image.content_type):
+            image_name = secure_filename(image.filename)
+            image.save(os.path.join(uploads_dir, image_name))
+            image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=image_name, _external=True)
+            image_upload = Image(name=image_name, image_URL=image_url)
+            image_upload.dataset_id = dataset_id
+            image_upload.save()
+        response = jsonify({
+            "message": "Image was successfully added",
+            "dataset_id": dataset_id,
+            "image": image_url,
+            "id": image_upload.id
+        })
+        response.status_code = 201
+        return response
+    except Exception as e:
+        response = jsonify({
+            "message": str(e)
+        })
+        response.status_code = 500
+        print("Message: ", e)
+        return response

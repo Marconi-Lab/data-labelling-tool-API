@@ -309,23 +309,23 @@ class AuthTestCase(unittest.TestCase):
         self.assertIn("Images were successfully added", str(image_res.data))
 
     # Test image upload to dataset
-    # def test_admin_can_upload_image_to_dataset(self):
-    #     """Test if admin can upload image to a dataset"""
-    #     # Upload dataset
-    #     dataset_res = self.client().post("/admin/datasets/", data=self.dataset,
-    #                                      headers=self.admin_headers())
-    #     self.assertEqual(dataset_res.status_code, 201)
-    #     dataset_json = json.loads(dataset_res.data.decode())
-    #
-    #     image_res = self.client().post(
-    #         "/admin/datasets/images/",
-    #         data={"dataset_id": dataset_json["id"], "images": self.image},
-    #         content_type="multipart/form-data",
-    #         headers=self.admin_headers()
-    #     )
-    #     print(image_res.data)
-    #     self.assertEqual(image_res.status_code, 201)
-    #     self.assertIn("Image was successfully added", str(image_res.data))
+    def test_admin_can_upload_image_to_dataset(self):
+        """Test if admin can upload image to a dataset"""
+        # Upload dataset
+        dataset_res = self.client().post("/admin/datasets/", data=self.dataset,
+                                         headers=self.admin_headers())
+        self.assertEqual(dataset_res.status_code, 201)
+        dataset_json = json.loads(dataset_res.data.decode())
+
+        image_res = self.client().post(
+            "/admin/datasets/images/",
+            data={"dataset_id": dataset_json["id"], "image": self.image},
+            content_type="multipart/form-data",
+            headers=self.admin_headers()
+        )
+        print(image_res.data)
+        self.assertEqual(image_res.status_code, 201)
+        self.assertIn("Image was successfully added", str(image_res.data))
 
     # def test_admin_can_delete_image_by_id(self):
     #     """Test if admin can delete image by id"""
