@@ -19,6 +19,7 @@ class AuthTestCase(unittest.TestCase):
             'password': 'test_password'
         }
         self.dataset = {'name': 'Cervical Infection', 'classes': ["Positive", "Negative", "Not Sure"]}
+        self.image = (io.BytesIO(b"abcdef"), "test4.jpg")
         self.images = [
             (io.BytesIO(b"abcdef"), 'test.jpg'),
             (io.BytesIO(b"abcdef"), 'test1.jpg'),
@@ -196,6 +197,28 @@ class AuthTestCase(unittest.TestCase):
         results = self.client().get("/user/datasets/item/1/",
                                     headers=self.user_headers())
         self.assertIn("not sure", str(results.data))
+
+    def test_user_get_image_by_id(self):
+        """Testing if user can retrieve image by its id"""
+        # Create user
+        res = self.client().post('/auth/register/', data=self.user_data)
+        self.assertEqual(res.status_code, 201)
+        # Upload dataset
+        dataset_res = self.client().post('/admin/datasets/', data=self.dataset,
+                                         headers=self.admin_headers())
+        self.assertEqual(dataset_res.status_code, 201)
+        dataset_json = json.loads(dataset_res.data.decode())
+
+        # Upload item
+        image_res = self.client().post('/admin/datasets/images/',
+                                      data={"dataset_id": dataset_json["id"], "images": self.image},
+                                      content_type="multipart/form-data",
+                                      headers=self.admin_headers())
+        # Retrieve item with id
+        rv = self.client().get('/user/images/1/', headers=self.user_headers())
+
+        self.assertEqual(rv.status_code, 200)
+        self.assertIn("image", str(rv.data))
 
     def tearDown(self):
         """Teardown all initialized variables"""
