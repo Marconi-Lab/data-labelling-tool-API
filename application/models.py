@@ -213,3 +213,20 @@ class Assignment(db.Model):
     def get_user_datasets(user_id):
         """This method gets all the dataset that have been assigned to the given user"""
         return Assignment.query.filter_by(user_id=user_id)
+
+
+class BlackListToken(db.Model):
+    """Model stores blacklisted tokens"""
+
+    __tablename__ = "blacklist_tokens"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    token = db.Column(db.String(500), unique=True, nullable=False)
+    blacklisted_on = db.Column(db.DateTime, nullable=False)
+
+    def __init__(self, token):
+        self.token = token
+        self.blacklisted_on = datetime.datetime.now()
+
+    def __repr__(self):
+        return f"id: token: {self.token}"
