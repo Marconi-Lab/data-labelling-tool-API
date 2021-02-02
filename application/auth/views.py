@@ -1,8 +1,8 @@
 from . import auth_blueprint
 
 from flask.views import MethodView
-from flask import Blueprint, make_response, request, jsonify
-from application.models import User
+from flask import make_response, request, jsonify
+from application.models import User, BlackListToken
 
 
 class RegistrationView(MethodView):
@@ -85,11 +85,41 @@ class LoginView(MethodView):
             # Return a server error using the HTTP Error Code 500 (Internal Server Error)
             return make_response(jsonify(response)), 500
 
+class LogoutAPI(MethodView):
+    """Logout endpoint"""
+    def post(self):
+        #get auth token
+        auth_header = request.headers.get("Authorization")
+        if auth_header:
+            auth_token = auth_header.split(" ")[1]
+        else:
+            auth_token = ""
+        if auth_token:
+            resp = User.decode_token(auth_token)
+            if not isinstance(resp, str):
+                blacklist_token = BlackListToken(token=auth_token)
+                try:
+                    blacklist_token.save()
+                    response = jsonify({
+                        "status": "success",
+                        "message": "Successfully logged out."
+                    })
+                    response.status_code = 200
+                    return response
+                except Exception as e:
+                    responseObject = jsonify({
+                        "status": "fail",
+                        "message": e
+                    })
+                    responseObject.status_code = 500
+                    return responseObject
+
+
 
 # Define the API resource
 registration_view = RegistrationView.as_view('registration_view')
 login_view = LoginView.as_view('login_view')
-
+logout_view = LogoutAPI.as_view("logout_view")
 
 # Define the rule for the registration url --->  /auth/register/
 # Then add the rule to the blueprint
@@ -104,4 +134,11 @@ auth_blueprint.add_url_rule(
     '/auth/login/',
     view_func=login_view,
     methods=['POST']
+)
+
+auth_blueprint.add_url_rule(
+    "/auth/logout/",
+    view_func=logout_view,
+    methods=['POST']
+
 )
