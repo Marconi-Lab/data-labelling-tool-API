@@ -1,6 +1,6 @@
 from functools import wraps
 from flask import request, abort
-from application.models import User
+from application.models import User, BlackListToken
 
 def permission_required():
     def _permission_required(f):
@@ -12,6 +12,9 @@ def permission_required():
             access_token = auth_headers.split(" ")[1]
             if access_token:
                 try:
+                    is_blacklisted = BlackListToken.check_blacklist(access_token)
+                    if is_blacklisted:
+                        abort(401, "Token blacklisted")
                     user_id = User.decode_token(access_token)
                     if not str(user_id) == str(request.headers.get("user_id")):
                         abort(401, "Not authorized" + user_id + "!= "+request.headers.get("user_id"))
@@ -33,6 +36,9 @@ def user_is_authenticated():
             access_token = auth_headers.split(" ")[1]
             if access_token:
                 try:
+                    is_blacklisted = BlackListToken.check_blacklist(access_token)
+                    if is_blacklisted:
+                        abort(401, "Token blacklisted")
                     user_id = User.decode_token(access_token)
                     if not str(user_id) == str(request.headers.get("user_id")):
                         abort(401, "Not authorized" + user_id + "!= "+request.headers.get("user_id"))

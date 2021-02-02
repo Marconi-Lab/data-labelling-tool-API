@@ -226,7 +226,20 @@ class BlackListToken(db.Model):
 
     def __init__(self, token):
         self.token = token
-        self.blacklisted_on = datetime.datetime.now()
+        self.blacklisted_on = datetime.now()
 
     def __repr__(self):
         return f"id: token: {self.token}"
+
+    def save(self):
+        """Saves an assignment"""
+        db.session.add(self)
+        db.session.commit()
+
+    @staticmethod
+    def check_blacklist(auth_token):
+        res = BlackListToken.query.filter_by(token=str(auth_token)).first()
+        if res:
+            return True
+        else:
+            return False
