@@ -25,6 +25,36 @@ class AuthTestCase(unittest.TestCase):
             db.drop_all()
             db.create_all()
 
+    def register_user(
+            self,
+            email="user@test.com",
+            password="test1234",
+            is_admin="",
+            username="User",
+    ):
+        """Helper method for registering admin"""
+        user_data = {
+            "email": email,
+            "password": password,
+            "is_admin": is_admin,
+            "username": username,
+        }
+        return self.client().post("/auth/register/", data=user_data)
+
+    def login_user(self, email="user@test.com", password="test1234"):
+        """Helper method for admin log in"""
+        user_data = {"email": email, "password": password}
+        return self.client().post("/auth/login/", data=user_data)
+
+    def user_headers(self):
+        self.register_user()
+        login_res = self.login_user()
+        self.assertEqual(login_res.status_code, 200)
+        access_token = json.loads(login_res.data.decode())["access_token"]
+        is_admin = bool(json.loads(login_res.data.decode())["is_admin"])
+        user_id = json.loads(login_res.data.decode())["id"]
+        return dict(Authorization="Bearer " + access_token, is_admin=is_admin, user_id=user_id)
+
     def test_registration(self):
         """Test user registration works correcty."""
         res = self.client().post('/auth/register/', data=self.user_data)
@@ -76,3 +106,20 @@ class AuthTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 401)
         self.assertEqual(
             result['message'], "Invalid email or password, Please try again")
+
+    def test_logout_blacklisted_token(self):
+        """Test if user can logout"""
+        # Register user
+        res = self.client().post('/auth/register/', data=self.user_data)
+        self.assertEqual(res.status_code, 201)
+        # User login
+        login_res = self.client().post('/auth/login/', data=self.user_data)
+        self.assertEqual(login_res.status_code, 200)
+        # Logout
+        rv = self.client().post('/auth/logout/', headers=self.user_headers())
+        self.assertIn("Successfully logged out.", str(rv.data))
+        self.assertEqual(rv.status_code, 200)
+
+        result = self.client().get('/user/1/home/', headers=self.user_headers())
+        self.assertIn("Token blacklisted", str(result.data))
+        self.assertEqual(result.status_code, 401)
