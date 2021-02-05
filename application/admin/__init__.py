@@ -102,7 +102,7 @@ def item_manipulation(id, **kwargs):
 @permission_required()
 def user():
     #GET request
-    users = User.get_all()
+    users = User.query.filter_by(is_admin="")
     results = []
 
     for user in users:
