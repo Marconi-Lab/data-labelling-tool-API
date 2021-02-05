@@ -2,6 +2,7 @@ from flask_api import FlaskAPI
 from flask_sqlalchemy import SQLAlchemy 
 
 from instance.config import app_config
+from flask_cors import CORS, cross_origin
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -16,11 +17,13 @@ def create_app(config_name):
     from application.decorators import permission_required
 
     app = FlaskAPI(__name__, instance_relative_config=True)
+    cors = CORS(app)
     app.config.from_object(app_config[config_name])
     app.config.from_pyfile('config.py')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     # user_manager = UserManager(app, db, User)
     db.init_app(app)
+    app.config['CORS_HEADERS'] = 'Content-Type'
 
     @app.route('/admin/datasets/', methods=["POST", "GET"])
     @permission_required()
