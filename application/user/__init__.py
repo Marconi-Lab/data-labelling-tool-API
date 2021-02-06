@@ -53,6 +53,7 @@ def get_user_datasets(user_id, *kwargs):
 @user_is_authenticated()
 def dataset_items_manipulation(item_id, **kwargs):
     item = Item.query.filter_by(id=item_id).first()
+    dataset = Dataset.query.filter_by(id=item.dataset_id).first()
     if not item:
         abort(404)
     label = str(request.data.get("label", ""))
@@ -92,7 +93,8 @@ def dataset_items_manipulation(item_id, **kwargs):
                 "comment": item.comment,
                 "labelled": item.labelled,
                 "labelled_by": item.labelled_by,
-                "images": image_URLs
+                "images": image_URLs,
+                "image_classes": dataset.classes2
             }
         )
         response.status_code = 200
