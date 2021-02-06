@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify, abort
-from application.models import Image, Item, User, Assignment, Dataset
+
 from application.decorators import user_is_authenticated
+from application.models import Image, Item, User, Assignment, Dataset
 
 user_blueprint = Blueprint('user', __name__)
+
 
 @user_blueprint.route("/user/<int:user_id>/home/", methods=["GET"])
 @user_is_authenticated()
@@ -25,6 +27,7 @@ def get_user_stats(user_id, **kwargs):
     response.status_code = 200
     return response
 
+
 @user_blueprint.route("/user/<int:user_id>/datasets/", methods=["GET"])
 @user_is_authenticated()
 def get_user_datasets(user_id, *kwargs):
@@ -45,6 +48,7 @@ def get_user_datasets(user_id, *kwargs):
     response.status_code = 200
     return response
 
+
 @user_blueprint.route("/user/item/<int:item_id>/", methods=["GET", "PUT"])
 @user_is_authenticated()
 def dataset_items_manipulation(item_id, **kwargs):
@@ -63,35 +67,38 @@ def dataset_items_manipulation(item_id, **kwargs):
         item.save()
         response = jsonify(
             {
-            "id": item.id,
-            "name": item.name,
-            "label": item.label,
-            "comment": item.comment,
-            "labelled": item.labelled,
-            "labelled_by": item.labelled_by
+                "id": item.id,
+                "name": item.name,
+                "label": item.label,
+                "comment": item.comment,
+                "labelled": item.labelled,
+                "labelled_by": item.labelled_by
             }
         )
         response.status_code = 200
         return response
-    else: 
+    else:
         images = Image.query.filter_by(item_id=item.id)
         image_URLs = list()
         for image in images:
-            image_URLs.append(image.image_URL)
+            image_URLs.append(
+                {"id": image.id, "image": image.image_URL, "labelled": image.labelled, "label": image.label})
 
         response = jsonify(
             {
-            "id": item.id,
-            "name": item.name,
-            "label": item.label,
-            "comment": item.comment,
-            "labelled": item.labelled,
-            "labelled_by": item.labelled_by,
-            "images": image_URLs
+                "id": item.id,
+                "name": item.name,
+                "label": item.label,
+                "comment": item.comment,
+                "labelled": item.labelled,
+                "labelled_by": item.labelled_by,
+                "images": image_URLs
             }
         )
         response.status_code = 200
         return response
+
+
 @user_blueprint.route("/user/datasets/<int:dataset_id>/", methods=["GET"])
 @user_is_authenticated()
 def get_dataset_items(dataset_id):
@@ -120,6 +127,7 @@ def get_dataset_items(dataset_id):
     })
     response.status_code = 200
     return response
+
 
 @user_blueprint.route("/user/images/<int:image_id>/", methods=["GET", "PUT"])
 def manipulate_images(image_id):
