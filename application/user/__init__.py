@@ -94,7 +94,8 @@ def dataset_items_manipulation(item_id, **kwargs):
                 "labelled": item.labelled,
                 "labelled_by": item.labelled_by,
                 "images": image_URLs,
-                "image_classes": dataset.classes2
+                "image_classes": dataset.classes2,
+                "dataset_id": dataset.id
             }
         )
         response.status_code = 200
