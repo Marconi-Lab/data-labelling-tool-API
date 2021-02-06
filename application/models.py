@@ -5,9 +5,10 @@ import jwt
 from flask import current_app
 from datetime import datetime, timedelta
 
+
 class Dataset(db.Model):
     """This class represents the datasets table"""
-    
+
     __tablename__ = "datasets"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -41,6 +42,7 @@ class Dataset(db.Model):
     def __repr__(self):
         return "<Dataset: {}>".format(self.name)
 
+
 class User(db.Model):
     """This class defines the user table"""
 
@@ -58,7 +60,7 @@ class User(db.Model):
         self.password = Bcrypt().generate_password_hash(password).decode()
         self.username = username
         self.is_admin = is_admin
-        
+
     def password_is_valid(self, password):
         """Checks password against it's hash"""
         return Bcrypt().check_password_hash(self.password, password)
@@ -71,7 +73,7 @@ class User(db.Model):
     @staticmethod
     def get_all():
         return User.query.all()
-    
+
     @staticmethod
     def count_all():
         return User.query.count()
@@ -96,7 +98,7 @@ class User(db.Model):
         except Exception as e:
             # return and error in string format if an exception occurs
             return str(e)
-    
+
     @staticmethod
     def decode_token(token):
         """Decodes the access token from the Authorization header."""
@@ -111,9 +113,10 @@ class User(db.Model):
             # the token is invalid, return an error string
             return "Invalid token. Please register or login"
 
+
 class Item(db.Model):
     """This class defines the data items table"""
-    
+
     __tablename__ = "data_items"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -128,6 +131,7 @@ class Item(db.Model):
         """Initialize with dataset_id, label, comment, labelled_status"""
         self.dataset_id = dataset_id
         self.name = name
+
     def save(self):
         """Save an item
         Applies for both creating an new item and updating an existing item.
@@ -148,6 +152,7 @@ class Item(db.Model):
     def __repr__(self):
         """Return a representation of a data item instance"""
         return f"<Data Item: {self.name}"
+
 
 class Image(db.Model):
     """This class an image belonging to a data item"""
@@ -185,6 +190,7 @@ class Image(db.Model):
     def __repr__(self):
         """Return representation of an image"""
         return f"Image {self.name}"
+
 
 class Assignment(db.Model):
     """Class for dataset labelling assignments"""
