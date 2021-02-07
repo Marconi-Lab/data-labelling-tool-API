@@ -80,6 +80,7 @@ def dataset_items_manipulation(item_id, **kwargs):
         return response
     else:
         images = Image.query.filter_by(item_id=item.id)
+        images = images.order_by(Image.id.asc())
         image_URLs = list()
         for image in images:
             image_URLs.append(
@@ -95,7 +96,8 @@ def dataset_items_manipulation(item_id, **kwargs):
                 "labelled_by": item.labelled_by,
                 "images": image_URLs,
                 "image_classes": dataset.classes2,
-                "dataset_id": dataset.id
+                "dataset_id": dataset.id,
+                "dataset_classes": dataset.classes
             }
         )
         response.status_code = 200
