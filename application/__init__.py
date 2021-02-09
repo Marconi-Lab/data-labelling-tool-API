@@ -123,6 +123,23 @@ def create_app(config_name):
             })
             response.status_code = 200
             return response
+
+    @app.route('/admin/datasets/<int:id>/classes2/', methods=['PUT'])
+    @permission_required()
+    def add_image_classes(id):
+        dataset = Dataset.query.filter_by(id=id).first()
+        classes = list(request.data.get("classes2"))
+        dataset.classes2 = classes
+        dataset.save()
+        response = jsonify({
+            "id": dataset.id,
+            "name": dataset.name,
+            "classes": dataset.classes,
+            "date_created": dataset.date_created,
+            "date_modified": dataset.date_modified
+        })
+        response.status_code = 200
+        return response
     
     from .auth import auth_blueprint
     app.register_blueprint(auth_blueprint)

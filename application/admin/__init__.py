@@ -4,7 +4,8 @@ from application.decorators import permission_required
 from werkzeug.utils import secure_filename
 import os
 import application as app
-
+from PIL import Image as Img
+import io
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -15,7 +16,6 @@ admin_blueprint = Blueprint('admin', __name__)
 def item(dataset_id):
     try:
         #GET request
-        # dataset_id = request.data["dataset_id"]
         if request.method == "GET":
             items = Item.get_all(dataset_id)
             results = []
@@ -39,14 +39,8 @@ def item(dataset_id):
         else:
             #  POST Request
             name = str(request.data.get("name", ''))
-            classes = request.data.getlist("classes")
             if name:
                 item = Item(name=name, dataset_id=dataset_id)
-                dataset = Dataset.query.filter_by(id=dataset_id).first()
-                if not dataset:
-                    abort(404)
-                dataset.classes2 = classes
-                dataset.save()
                 item.save()
                 response = jsonify({
                     "id": item.id,
@@ -209,12 +203,15 @@ def allowed_file(filename):
 @admin_blueprint.route("/admin/item/<int:item_id>/", methods=["POST"])
 def upload_images(item_id):
     try:
+        print(request.files.getlist("images"))
         images_list = request.files.getlist("images")
 
         images = list()
         for image in images_list:
             if image and allowed_file(image.content_type):
                 image_name = secure_filename(image.filename)
+                image = Img.open(io.BytesIO(image.stream.read()))
+                image = image.resize((1024, 1024), Img.ANTIALIAS)
                 image.save(os.path.join(uploads_dir, image_name))
                 image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=image_name, _external=True)
                 image_upload = Image(name=image_name, image_URL=image_url)
@@ -243,7 +240,7 @@ def upload_images(item_id):
 @admin_blueprint.route("/admin/datasets/images/", methods=["POST"])
 def dataset_image_upload():
     try:
-        image = request.files["image"]
+        image = request.files["images"]
         dataset_id = str(request.data.get("dataset_id", ""))
         if image and allowed_file(image.content_type):
             image_name = secure_filename(image.filename)
