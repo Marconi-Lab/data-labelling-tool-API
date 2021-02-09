@@ -92,8 +92,8 @@ class AuthTestCase(unittest.TestCase):
         # Upload item
 
         item_res = self.client().post(
-            "/admin/item/",
-            data={"dataset_id": dataset_json["id"], "name": "item", "classes": ["acid", "no acid"]},
+            f"/admin/{dataset_json['id']}/item/",
+            data={"name": "item", "classes": ["acid", "no acid"]},
             headers=self.admin_headers()
         )
 
@@ -117,13 +117,12 @@ class AuthTestCase(unittest.TestCase):
 
         # Upload item
         item_res = self.client().post(
-            "/admin/item/",
-            data={"dataset_id": dataset_json["id"], "name": "item"},
+            f"/admin/{dataset_json['id']}/item/",
+            data={ "name": "item"},
             headers=self.admin_headers()
         )
         rv = self.client().get(
-            "/admin/item/",
-            data={"dataset_id": dataset_json["id"]},
+            f"/admin/{dataset_json['id']}/item/",
             headers=self.admin_headers()
         )
 
@@ -141,8 +140,8 @@ class AuthTestCase(unittest.TestCase):
 
         # Upload item
         item_res = self.client().post(
-            "/admin/item/",
-            data={"dataset_id": dataset_json["id"], "name": "item"},
+            f"/admin/{dataset_json['id']}/item/",
+            data={ "name": "item"},
             headers=self.admin_headers()
         )
         item_json = json.loads(item_res.data.decode())
@@ -167,8 +166,8 @@ class AuthTestCase(unittest.TestCase):
 
         # Upload item
         item_res = self.client().post(
-            "/admin/item/",
-            data={"dataset_id": dataset_json["id"], "name": "item"},
+            f"/admin/{dataset_json['id']}/item/",
+            data={"name": "item"},
             headers=self.admin_headers()
         )
 
@@ -298,7 +297,7 @@ class AuthTestCase(unittest.TestCase):
         dataset_json = json.loads(dataset_res.data.decode())
 
         # Create item (Folder)
-        item_res = self.client().post("/admin/item/",
+        item_res = self.client().post(f"/admin/{dataset_json['id']}/item/",
                                       data=dict(dataset_id=dataset_json["id"], name="item_name"),
                                       headers=self.admin_headers())
         self.assertEqual(item_res.status_code, 201)

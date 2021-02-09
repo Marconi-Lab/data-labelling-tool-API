@@ -139,8 +139,8 @@ class AuthTestCase(unittest.TestCase):
         dataset_json = json.loads(dataset_res.data.decode())
 
         # Upload item
-        item_res = self.client().post('/admin/item/',
-                                      data={"dataset_id": dataset_json['id'], "name": "item"},
+        item_res = self.client().post(f"/admin/{dataset_json['id']}/item/",
+                                      data={"name": "item"},
                                       headers=self.admin_headers())
         self.assertEqual(item_res.status_code, 201)
         # Get items
@@ -163,8 +163,8 @@ class AuthTestCase(unittest.TestCase):
         dataset_json = json.loads(dataset_res.data.decode())
 
         # Upload item
-        item_res = self.client().post('/admin/item/',
-                                      data={"dataset_id": dataset_json['id'], "name": "item"},
+        item_res = self.client().post(f"/admin/{dataset_json['id']}/item/",
+                                      data={"name": "item"},
                                       headers=self.admin_headers())
         item_json = json.loads(item_res.data.decode())
         # Retrieve item with id
@@ -185,8 +185,8 @@ class AuthTestCase(unittest.TestCase):
         dataset_json = json.loads(dataset_res.data.decode())
 
         # Upload item
-        item_res = self.client().post('/admin/item/',
-                                      data={"dataset_id": dataset_json['id'], "name":"item"},
+        item_res = self.client().post(f"/admin/{dataset_json['id']}/item/",
+                                      data={"name":"item"},
                                       headers=self.admin_headers())
         item_json = json.loads(item_res.data.decode())
         # Retrieve item with id
