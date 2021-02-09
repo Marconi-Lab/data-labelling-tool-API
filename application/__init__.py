@@ -30,7 +30,7 @@ def create_app(config_name):
     def datasets():
         if request.method == "POST":
             name = str(request.data.get("name", ''))
-            classes = request.data.getlist("classes")
+            classes = list(request.data.get("classes"))
 
             if name and classes:
                 dataset = Dataset(name=name, classes=classes)

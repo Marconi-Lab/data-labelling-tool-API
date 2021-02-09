@@ -10,12 +10,12 @@ load_dotenv()
 
 admin_blueprint = Blueprint('admin', __name__)
 
-@admin_blueprint.route("/admin/item/", methods=["GET", "POST"])
+@admin_blueprint.route("/admin/<int:dataset_id>/item/", methods=["GET", "POST"])
 @permission_required()
-def item():
+def item(dataset_id):
     try:
         #GET request
-        dataset_id = str(request.data.get("dataset_id", ""))
+        # dataset_id = request.data["dataset_id"]
         if request.method == "GET":
             items = Item.get_all(dataset_id)
             results = []
@@ -188,7 +188,7 @@ def user_assignments_manipulation(user_id, **kwargs):
 @permission_required()
 def admin_stats(id, **kwargs):
     admin = User.query.filter_by(id=id).first()
-    users = User.count_all()
+    users = User.query.filter_by(is_admin="").count()
     datasets = Dataset.count_all()
     response = jsonify({
         "id": admin.id,
