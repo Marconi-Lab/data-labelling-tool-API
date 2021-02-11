@@ -100,9 +100,24 @@ def user():
     results = []
 
     for user in users:
+        assignments = Assignment.query.filter_by(user_id=user.id)
+        dataset_count = assignments.count()
+        record_count = Image.query.filter_by(labelled_by=user.id).count()
+        datasets = list()
+        for assignment in assignments:
+            dataset = Dataset.query.filter_by(id=assignment.dataset_id).first()
+            dataset = {
+                "id": dataset.id,
+                "name": dataset.name
+            }
+            datasets.append(dataset)
         obj = {
             "id": user.id,
-            "username": user.username
+            "username": user.username,
+            "email": user.email,
+            "dataset_count": dataset_count,
+            "datasets": datasets,
+            "record_count": record_count
         }
         results.append(obj)
     response = jsonify(results)
@@ -126,7 +141,7 @@ def user_datasets(dataset_id, **kwargs):
     response.status_code = 200
     return response
 
-@admin_blueprint.route("/admin/users/<int:user_id>/assignments/", methods=["POST", "GET", "DELETE"])
+@admin_blueprint.route("/admin/users/<int:user_id>/assignments/", methods=["POST", "GET"])
 @permission_required()
 def user_assignments_manipulation(user_id, **kwargs):
     # assigment = Assignment.query.filter_by()
@@ -148,16 +163,6 @@ def user_assignments_manipulation(user_id, **kwargs):
         })
         response.status_code = 201
         return response
-    elif request.method == "DELETE":
-        dataset_id = str(request.data.get("dataset_id", ""))
-        dataset = Dataset.query.filter_by(id=int(dataset_id)).first()
-        if not dataset:
-            abort(404)
-        assignment = Assignment.query.filter_by(user_id=int(user_id), dataset_id=int(dataset_id)).first()
-        assignment.delete()
-        return {
-            "Message": "Assignment {} deleted successfully".format(id)
-        }, 200
     else:
         # GET Request
         assignments = Assignment.get_user_datasets(user_id)
@@ -177,6 +182,17 @@ def user_assignments_manipulation(user_id, **kwargs):
         response = jsonify(results)
         response.status_code = 200
         return response
+@admin_blueprint.route("/admin/users/<int:user_id>/assignments/<int:dataset_id>/", methods=["DELETE"])
+@permission_required()
+def delete_assignment(user_id, dataset_id):
+        dataset = Dataset.query.filter_by(id=dataset_id).first()
+        if not dataset:
+            abort(404)
+        assignment = Assignment.query.filter_by(user_id=int(user_id), dataset_id=int(dataset_id)).first()
+        assignment.delete()
+        return {
+            "Message": "Assignment {} deleted successfully".format(id)
+        }, 200
 
 @admin_blueprint.route('/admin/<int:id>/home/', methods=["GET"])
 @permission_required()
