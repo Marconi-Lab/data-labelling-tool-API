@@ -1,5 +1,5 @@
 import os
-from flask import logging
+import logging
 
 from application import create_app
 
