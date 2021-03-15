@@ -1,3 +1,4 @@
+import csv
 import os
 import pathlib
 import zipfile
@@ -71,7 +72,6 @@ def create_app(config_name):
                     all_images = Image.query.filter_by(item_id=item.id).count()
                     label_count += labelled_images
                     total_count += all_images
-
 
                 if labelled_items and all_items:
                     progress = (label_count / total_count) * 100
@@ -158,6 +158,33 @@ def create_app(config_name):
         })
         response.status_code = 200
         return response
+
+    @app.route('/csv/<int:dataset_id>/', methods=["GET"])
+    def get_csv(dataset_id):
+        working_path = pathlib.Path().absolute()
+        dataset = Dataset.query.filter_by(id=dataset_id).first()
+        with open("{}\\{}.csv".format(os.path.join(working_path, "application", "static"), dataset.name), "w",
+                  newline="") as f:
+            # with open(f"{dataset.name}.csv", "w", newline="") as f:
+            writer = csv.writer(f)
+
+            writer.writerow(["image", "label_1", "label_2", "comment"])
+            print("Dataset id", dataset_id)
+
+            images = Image.query.filter_by(dataset_id=dataset_id).all()
+            print("These images   .... ", images)
+            for image in images:
+                print(image)
+                image_label = image.label
+                folder_label = Item.query.filter_by(id=image.item_id).first().label
+                image_name = image.image_URL.split('/')[-1]
+                image_comment = Item.query.filter_by(id=image.item_id).first().comment
+
+                writer.writerow([image_name, folder_label, image_label, image_comment])
+
+        return send_from_directory(directory=os.path.join(working_path, "application", "static"),
+                                   filename=f"{dataset.name}.csv", as_attachment=True)
+        # return send_from_directory(directory=".", filename=f"{dataset.name}.csv", as_attachement=True)
 
     @app.route('/download/<int:dataset_id>/', methods=["GET"])
     def download_dataset(dataset_id):
