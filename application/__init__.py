@@ -7,6 +7,10 @@ from dotenv import load_dotenv
 from flask_api import FlaskAPI
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from io import StringIO
+from flask import stream_with_context
+from werkzeug.datastructures import Headers
+from werkzeug.wrappers import Response
 
 from instance.config import app_config
 
@@ -158,7 +162,39 @@ def create_app(config_name):
         })
         response.status_code = 200
         return response
+    @app.route('/download/csv/<int:dataset_id>/', methods=["GET"])
+    def stream_csv(dataset_id):
+        dataset = Dataset.query.filter_by(id=dataset_id).first()
+        def generate():
+            data = StringIO()
+            w = csv.writer(data)
+            #writing header
+            w.writerow(('image', 'label', 'label 2', "comment"))
+            yield data.getvalue()
+            data.seek(0)
+            data.truncate(0)
 
+            # write row
+            images = Image.query.filter_by(dataset_id=dataset_id).all()
+            print("These images   .... ", images)
+            for image in images:
+                print(image)
+                image_label = image.label
+                folder_label = Item.query.filter_by(id=image.item_id).first().label
+                image_name = image.image_URL.split('/')[-1]
+                image_comment = Item.query.filter_by(id=image.item_id).first().comment
+
+                w.writerow([image_name, folder_label, image_label, image_comment])
+                yield data.getvalue()
+                data.seek(0)
+                data.truncate(0)
+        # add filename
+        headers = Headers()
+        headers.set('Content-Disposition', 'attachment', filename=f"{dataset.name}.csv")
+        # stream response as data is generated
+        return Response(
+            stream_with_context(generate()), mimetype="text/csv", headers=headers
+        )
     @app.route('/csv/<int:dataset_id>/', methods=["GET"])
     def get_csv(dataset_id):
         working_path = pathlib.Path().absolute()
