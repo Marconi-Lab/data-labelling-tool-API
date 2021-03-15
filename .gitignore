@@ -15,3 +15,5 @@ application/static/*
 .idea*
 
 benb
+migrations
+
