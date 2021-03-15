@@ -221,7 +221,7 @@ def upload_images(item_id):
     try:
         print(request.files.getlist("images"))
         images_list = request.files.getlist("images")
-
+        dataset_id = Item.query.filter_by(id=item_id).first().dataset_id
         images = list()
         for image in images_list:
             if image and allowed_file(image.content_type):
@@ -232,6 +232,7 @@ def upload_images(item_id):
                 image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=image_name, _external=True)
                 image_upload = Image(name=image_name, image_URL=image_url)
                 image_upload.item_id = item_id
+                image_upload.dataset_id = dataset_id
                 image_upload.save()
                 obj = {
                     "id": image_upload.id,
