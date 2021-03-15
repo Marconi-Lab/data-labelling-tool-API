@@ -161,6 +161,7 @@ class Image(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id, ondelete="CASCADE"))
+    name = db.Column(db.String, default="")
     image_URL = db.Column(db.String)
     label = db.Column(db.String)
     labelled = db.Column(db.Boolean)
