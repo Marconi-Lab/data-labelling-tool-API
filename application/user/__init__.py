@@ -173,7 +173,7 @@ def manipulate_images(image_id):
         return response
 
 
-@user_blueprint.route("/user/images/boundingbox/<int:image_id>/", methods=["GET", "PUT"])
+@user_blueprint.route("/user/images/boundingbox/<int:image_id>/", methods=["PUT"])
 @user_is_authenticated()
 def add_bounding_box(image_id):
     cervical_area = request.data.get("boundingBox", "")
