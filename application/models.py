@@ -163,6 +163,7 @@ class Image(db.Model):
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id, ondelete="CASCADE"))
     name = db.Column(db.String, default="")
     image_URL = db.Column(db.String)
+    cervica_area = db.Column(db.String)
     label = db.Column(db.String)
     labelled = db.Column(db.Boolean)
     labelled_by = db.Column(db.Integer, db.ForeignKey(User.id, ondelete="CASCADE"))
