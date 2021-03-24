@@ -135,6 +135,7 @@ def get_dataset_items(dataset_id):
 
 
 @user_blueprint.route("/user/images/<int:image_id>/", methods=["GET", "PUT"])
+@user_is_authenticated()
 def manipulate_images(image_id):
     if request.method == "GET":
         image = Image.query.filter_by(id=image_id).first()
@@ -170,3 +171,21 @@ def manipulate_images(image_id):
         )
         response.status_code = 200
         return response
+
+
+@user_blueprint.route("/user/images/boundingbox/<int:image_id>/", methods=["GET", "PUT"])
+@user_is_authenticated()
+def add_bounding_box(image_id):
+    cervical_area = request.data.get("boundingBox", "")
+    image = Image.query.filter_by(id=image_id).first()
+    image.cervical_area = cervical_area
+    image.save()
+    response = jsonify({
+        "id": image.id,
+        "label": image.label,
+        "labelled": image.labelled,
+        "labelled_by": image.labelled_by,
+        "cervical_area": image.cervica_area
+    })
+    response.status_code = 200
+    return response
