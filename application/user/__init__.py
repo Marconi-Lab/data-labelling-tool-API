@@ -148,7 +148,8 @@ def manipulate_images(image_id):
             "labelled": image.labelled,
             "labelled_by": image.labelled_by,
             "dataset_id": image.dataset_id,
-            "item_id": image.item_id
+            "item_id": image.item_id,
+            "bounding_box": image.cervical_area
         })
         response.status_code = 200
         return response
