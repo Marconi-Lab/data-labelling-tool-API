@@ -177,7 +177,7 @@ def manipulate_images(image_id):
 @user_blueprint.route("/user/images/boundingbox/<int:image_id>/", methods=["PUT"])
 @user_is_authenticated()
 def add_bounding_box(image_id):
-    cervical_area = request.data.get("boundingBox", "")
+    cervical_area = request.data.get("bounding_box", "")
     image = Image.query.filter_by(id=image_id).first()
     image.cervical_area = cervical_area
     image.save()
@@ -186,7 +186,7 @@ def add_bounding_box(image_id):
         "label": image.label,
         "labelled": image.labelled,
         "labelled_by": image.labelled_by,
-        "cervical_area": image.cervica_area
+        "cervical_area": image.cervical_area
     })
     response.status_code = 200
     return response
