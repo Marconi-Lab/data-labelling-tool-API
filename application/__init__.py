@@ -76,7 +76,7 @@ def create_app(config_name):
                     all_images = Image.query.filter_by(item_id=item.id).count()
                     label_count += labelled_images
                     total_count += all_images
-                images_without_bounding_box = Image.query.filter_by(cervical_area=None).count()
+                images_without_bounding_box = Image.query.filter_by(cervical_area=None, dataset_id=dataset.id).count()
                 print("unboxed images ", images_without_bounding_box)
                 images = Image.query.count()
                 print("all images", images)
