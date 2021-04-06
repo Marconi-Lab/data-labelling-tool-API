@@ -84,7 +84,8 @@ def dataset_items_manipulation(item_id, **kwargs):
         image_URLs = list()
         for image in images:
             image_URLs.append(
-                {"id": image.id, "image": image.image_URL, "labelled": image.labelled, "label": image.label})
+                {"id": image.id, "image": image.image_URL, "labelled": image.labelled, "label": image.label,
+                 "bounding_box": image.cervical_area})
 
         response = jsonify(
             {
