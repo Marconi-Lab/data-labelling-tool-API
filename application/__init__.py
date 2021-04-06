@@ -76,9 +76,13 @@ def create_app(config_name):
                     all_images = Image.query.filter_by(item_id=item.id).count()
                     label_count += labelled_images
                     total_count += all_images
-
+                images_without_bounding_box = Image.query.filter_by(cervical_area=None, dataset_id=dataset.id).count()
+                print("unboxed images ", images_without_bounding_box)
+                images = Image.query.count()
+                print("all images", images)
+                images_with_bounding_box = images - images_without_bounding_box
                 if labelled_items and all_items:
-                    progress = (label_count / total_count) * 100
+                    progress = ((label_count / total_count)/2 + (images_with_bounding_box/images)/2) * 100
                 else:
                     progress = 0
 
@@ -128,9 +132,11 @@ def create_app(config_name):
         else:
             # GET by ID
             labelled_items = Item.query.filter_by(dataset_id=dataset.id).count()
+            labelled_images = Image.query.filter_by(labelled=True).count()
+            all_images = Image.query.count()
             all_items = Item.query.count()
             if labelled_items and all_items:
-                progress = (labelled_items / all_items) * 100
+                progress = (labelled_items + labelled_images/all_images + all_items) * 100
             else:
                 progress = 0
 
@@ -169,7 +175,7 @@ def create_app(config_name):
             data = StringIO()
             w = csv.writer(data)
             #writing header
-            w.writerow(('image', 'label', 'label 2', "comment"))
+            w.writerow(('image', 'label', 'label 2', "comment", "cervical area"))
             yield data.getvalue()
             data.seek(0)
             data.truncate(0)
@@ -180,11 +186,12 @@ def create_app(config_name):
             for image in images:
                 print(image)
                 image_label = image.label
+                cervical_area = image.cervical_area
                 folder_label = Item.query.filter_by(id=image.item_id).first().label
                 image_name = image.image_URL.split('/')[-1]
                 image_comment = Item.query.filter_by(id=image.item_id).first().comment
 
-                w.writerow([image_name, folder_label, image_label, image_comment])
+                w.writerow([image_name, folder_label, image_label, image_comment, cervical_area])
                 yield data.getvalue()
                 data.seek(0)
                 data.truncate(0)

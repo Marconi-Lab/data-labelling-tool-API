@@ -84,7 +84,8 @@ def dataset_items_manipulation(item_id, **kwargs):
         image_URLs = list()
         for image in images:
             image_URLs.append(
-                {"id": image.id, "image": image.image_URL, "labelled": image.labelled, "label": image.label})
+                {"id": image.id, "image": image.image_URL, "labelled": image.labelled, "label": image.label,
+                 "bounding_box": image.cervical_area})
 
         response = jsonify(
             {
@@ -135,6 +136,7 @@ def get_dataset_items(dataset_id):
 
 
 @user_blueprint.route("/user/images/<int:image_id>/", methods=["GET", "PUT"])
+@user_is_authenticated()
 def manipulate_images(image_id):
     if request.method == "GET":
         image = Image.query.filter_by(id=image_id).first()
@@ -147,7 +149,8 @@ def manipulate_images(image_id):
             "labelled": image.labelled,
             "labelled_by": image.labelled_by,
             "dataset_id": image.dataset_id,
-            "item_id": image.item_id
+            "item_id": image.item_id,
+            "bounding_box": image.cervical_area
         })
         response.status_code = 200
         return response
@@ -170,3 +173,21 @@ def manipulate_images(image_id):
         )
         response.status_code = 200
         return response
+
+
+@user_blueprint.route("/user/images/boundingbox/<int:image_id>/", methods=["PUT"])
+@user_is_authenticated()
+def add_bounding_box(image_id):
+    cervical_area = request.data.get("bounding_box", "")
+    image = Image.query.filter_by(id=image_id).first()
+    image.cervical_area = cervical_area
+    image.save()
+    response = jsonify({
+        "id": image.id,
+        "label": image.label,
+        "labelled": image.labelled,
+        "labelled_by": image.labelled_by,
+        "cervical_area": image.cervical_area
+    })
+    response.status_code = 200
+    return response
