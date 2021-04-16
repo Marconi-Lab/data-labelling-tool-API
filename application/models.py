@@ -142,7 +142,7 @@ class Item(db.Model):
     @staticmethod
     def get_all(dataset_id):
         """This method gets all the items in a dataset"""
-        return Item.query.filter_by(dataset_id=dataset_id)
+        return Item.query.filter_by(dataset_id=dataset_id).order_by(Item.name)
 
     def delete(self):
         """Deletes the given data item"""
