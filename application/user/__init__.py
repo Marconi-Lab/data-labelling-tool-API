@@ -111,7 +111,7 @@ def get_dataset_items(dataset_id):
     dataset = Dataset.query.filter_by(id=dataset_id).first()
     if not dataset:
         abort(404)
-    items = Item.query.filter_by(dataset_id=dataset_id)
+    items = Item.query.filter_by(dataset_id=dataset_id).order_by(Item.name)
     if not items:
         abort(404)
     data_items = list()
