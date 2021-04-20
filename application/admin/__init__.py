@@ -227,7 +227,7 @@ def upload_images(item_id):
             if image and allowed_file(image.content_type):
                 image_name = secure_filename(image.filename)
                 image = Img.open(io.BytesIO(image.stream.read()))
-                image = image.resize((1024, 1024), Img.ANTIALIAS)
+#                 image = image.resize((1024, 1024), Img.ANTIALIAS)
                 image.save(os.path.join(uploads_dir, image_name))
                 image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=image_name, _external=True)
                 image_upload = Image(name=image_name, image_URL=image_url)
