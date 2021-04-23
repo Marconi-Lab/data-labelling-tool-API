@@ -1,21 +1,25 @@
-from flask import Blueprint, request, jsonify, abort, url_for
-from application.models import Image, Item, User, Assignment, Dataset
-from application.decorators import permission_required
-from werkzeug.utils import secure_filename
-import os
-import application as app
-from PIL import Image as Img
 import io
+import os
+
+from PIL import Image as Img
 from dotenv import load_dotenv
+from flask import Blueprint, request, jsonify, abort, url_for
+from werkzeug.utils import secure_filename
+
+import application as app
+from application.decorators import permission_required
+from application.models import Image, Item, User, Assignment, Dataset
+
 load_dotenv()
 
 admin_blueprint = Blueprint('admin', __name__)
+
 
 @admin_blueprint.route("/admin/<int:dataset_id>/item/", methods=["GET", "POST"])
 @permission_required()
 def item(dataset_id):
     try:
-        #GET request
+        # GET request
         if request.method == "GET":
             items = Item.get_all(dataset_id)
             results = []
@@ -51,7 +55,7 @@ def item(dataset_id):
                 response.status_code = 201
                 return response
     except Exception as e:
-        response  = {
+        response = {
             "Message": str(e)
         }
         print("================================================================")
@@ -63,7 +67,6 @@ def item(dataset_id):
 @admin_blueprint.route("/admin/item/<int:id>/", methods=["GET", "DELETE"])
 @permission_required()
 def item_manipulation(id, **kwargs):
-
     dataset_id = str(request.data.get("dataset_id", ""))
     item = Item.query.filter_by(id=id).first()
     if not item:
@@ -72,12 +75,11 @@ def item_manipulation(id, **kwargs):
     images = Image.get_all(item.id)
     image_URLs = [i.image_URL for i in images]
 
-
     if request.method == "DELETE":
         item.delete()
-        return{
-            "message": "Item {} deleted successfully".format(id)
-        }, 200
+        return {
+                   "message": "Item {} deleted successfully".format(id)
+               }, 200
     else:
         # GET by ID
         response = jsonify({
@@ -92,10 +94,11 @@ def item_manipulation(id, **kwargs):
         response.status_code = 200
         return response
 
+
 @admin_blueprint.route("/admin/users/", methods=["GET"])
 @permission_required()
 def user():
-    #GET request
+    # GET request
     users = User.query.filter_by(is_admin="")
     results = []
 
@@ -124,6 +127,7 @@ def user():
     response.status_code = 200
     return response
 
+
 @admin_blueprint.route("/admin/users/datasets/<int:dataset_id>/", methods=["GET"])
 @permission_required()
 def user_datasets(dataset_id, **kwargs):
@@ -137,9 +141,10 @@ def user_datasets(dataset_id, **kwargs):
         "id": user_assignment.id,
         "user_id": user_id,
         "dataset_id": dataset_id
-    })    
+    })
     response.status_code = 200
     return response
+
 
 @admin_blueprint.route("/admin/users/<int:user_id>/assignments/", methods=["POST", "GET"])
 @permission_required()
@@ -182,17 +187,20 @@ def user_assignments_manipulation(user_id, **kwargs):
         response = jsonify(results)
         response.status_code = 200
         return response
+
+
 @admin_blueprint.route("/admin/users/<int:user_id>/assignments/<int:dataset_id>/", methods=["DELETE"])
 @permission_required()
 def delete_assignment(user_id, dataset_id):
-        dataset = Dataset.query.filter_by(id=dataset_id).first()
-        if not dataset:
-            abort(404)
-        assignment = Assignment.query.filter_by(user_id=int(user_id), dataset_id=int(dataset_id)).first()
-        assignment.delete()
-        return {
-            "Message": "Assignment {} deleted successfully".format(id)
-        }, 200
+    dataset = Dataset.query.filter_by(id=dataset_id).first()
+    if not dataset:
+        abort(404)
+    assignment = Assignment.query.filter_by(user_id=int(user_id), dataset_id=int(dataset_id)).first()
+    assignment.delete()
+    return {
+               "Message": "Assignment {} deleted successfully".format(id)
+           }, 200
+
 
 @admin_blueprint.route('/admin/<int:id>/home/', methods=["GET"])
 @permission_required()
@@ -209,8 +217,10 @@ def admin_stats(id, **kwargs):
     response.status_code = 200
     return response
 
+
 allowed_extensions = set(['image/jpeg', 'image/png', 'jpeg'])
 uploads_dir = os.path.join(os.path.dirname(app.__file__), os.environ.get("UPLOAD_FOLDER"))
+
 
 def allowed_file(filename):
     return filename in allowed_extensions
@@ -224,10 +234,11 @@ def upload_images(item_id):
         dataset_id = Item.query.filter_by(id=item_id).first().dataset_id
         images = list()
         for image in images_list:
+            print(image)
             if image and allowed_file(image.content_type):
                 image_name = secure_filename(image.filename)
                 image = Img.open(io.BytesIO(image.stream.read()))
-#                 image = image.resize((1024, 1024), Img.ANTIALIAS)
+                #                 image = image.resize((1024, 1024), Img.ANTIALIAS)
                 image.save(os.path.join(uploads_dir, image_name))
                 image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=image_name, _external=True)
                 image_upload = Image(name=image_name, image_URL=image_url)
@@ -253,6 +264,58 @@ def upload_images(item_id):
         response.status_code = 500
         print("Message: ", e)
         return response
+
+
+@admin_blueprint.route("/admin/<int:dataset_id>/bulk_upload/", methods=["POST"])
+def dataset_bulk_upload(dataset_id):
+    try:
+        # retrieve image and path
+        images = request.files.getlist("images")
+        paths = request.form.getlist("details")
+        # initalize images list
+        imgs = list()
+        for i, image in enumerate(images):
+            # get folder name
+            folder_name = paths[i].split("/")[1]
+            print("Folder_name ", folder_name)
+            # Get folder
+            folder = Item.query.filter_by(name=folder_name).first()
+            print("Folder", folder)
+            if not folder:
+                # create new folder if not already existing
+                folder = Item(name=folder_name, dataset_id=dataset_id)
+                folder.save()
+                print(folder)
+            # Do this if image is of allowed type
+            if image and allowed_file(image.content_type):
+                image_name = folder_name + paths[i].split("/")[2]
+                # read image
+                image = Img.open(io.BytesIO(image.stream.read()))
+                image.save(os.path.join(uploads_dir, image_name))
+                image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=image_name, _external=True)
+                image_upload = Image(name=image_name, image_URL=image_url)
+                image_upload.item_id = folder.id
+                image_upload.dataset_id = dataset_id
+                image_upload.save()
+                print("Uploaded ", image_name)
+                obj = {
+                    "id": image_upload.id,
+                    "image": image_url
+                }
+                imgs.append(obj)
+        response = jsonify({
+            "message": "Successfully uploaded dataset",
+            "images": imgs,
+            "id": dataset_id
+        })
+    except Exception as e:
+        response = jsonify({
+            "message": str(e)
+        })
+        response.status_code = 500
+        print("Message: ", e)
+    return response
+
 
 @admin_blueprint.route("/admin/datasets/images/", methods=["POST"])
 def dataset_image_upload():
@@ -281,6 +344,7 @@ def dataset_image_upload():
         response.status_code = 500
         print("Message: ", e)
         return response
+
 
 @admin_blueprint.route("/admin/images/<int:image_id>/", methods=["DELETE"])
 def delete_image(image_id):
