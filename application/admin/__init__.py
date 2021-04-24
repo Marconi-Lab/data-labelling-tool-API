@@ -320,14 +320,28 @@ def dataset_bulk_upload(dataset_id):
 @admin_blueprint.route("/admin/datasets/images/", methods=["POST"])
 def dataset_image_upload():
     try:
-        image = request.files["images"]
+        # print(request.files)
+        image = request.files["image"]
         dataset_id = str(request.data.get("dataset_id", ""))
+        folder_name = str(request.data.get("folder", ""))
+        # print("image ", image)
+        # print("dataset_id", dataset_id)
+        # print("folder", folder_name)
+        # get folder
+        folder = Item.query.filter_by(name=folder_name, dataset_id=dataset_id).first()
+        # print("Folder", folder)
+        if not folder:
+            # create new folder if not already existing
+            folder = Item(name=folder_name, dataset_id=dataset_id)
+            folder.save()
+            print("Folder ", folder)
         if image and allowed_file(image.content_type):
             image_name = secure_filename(image.filename)
             image.save(os.path.join(uploads_dir, image_name))
             image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=image_name, _external=True)
             image_upload = Image(name=image_name, image_URL=image_url)
             image_upload.dataset_id = dataset_id
+            image_upload.item_id = folder.id
             image_upload.save()
         response = jsonify({
             "message": "Image was successfully added",
@@ -335,6 +349,7 @@ def dataset_image_upload():
             "image": image_url,
             "id": image_upload.id
         })
+
         response.status_code = 201
         return response
     except Exception as e:
