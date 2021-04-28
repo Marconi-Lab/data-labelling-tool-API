@@ -168,6 +168,22 @@ def create_app(config_name):
         })
         response.status_code = 200
         return response
+
+    @app.route('/admin/datasets/<int:id>/classes/', methods=['PUT'])
+    @permission_required()
+    def updated_folder_classes(id):
+        dataset = Dataset.query.filter_by(id=id).first()
+        classes = list(request.data.get("classes"))
+        dataset.classes = classes
+        dataset.save()
+        response = jsonify({
+            "id": dataset.id,
+            "name": dataset.name,
+            "classes": dataset.classes,
+            "data_created": dataset.date_created
+        })
+        response.status_code = 200
+        return response
     @app.route('/download/csv/<int:dataset_id>/', methods=["GET"])
     def stream_csv(dataset_id):
         dataset = Dataset.query.filter_by(id=dataset_id).first()
