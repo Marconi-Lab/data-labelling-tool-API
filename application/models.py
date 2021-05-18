@@ -29,7 +29,7 @@ class Dataset(db.Model):
 
     @staticmethod
     def get_all():
-        return Dataset.query.all().order_by(Dataset.name)
+        return Dataset.query.order_by(Dataset.name).all()
 
     @staticmethod
     def count_all():
@@ -72,7 +72,7 @@ class User(db.Model):
 
     @staticmethod
     def get_all():
-        return User.query.all()
+        return User.query.order_by(User.username).all()
 
     @staticmethod
     def count_all():
