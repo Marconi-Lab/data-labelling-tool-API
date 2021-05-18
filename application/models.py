@@ -165,6 +165,8 @@ class Image(db.Model):
     image_URL = db.Column(db.String)
     cervical_area = db.Column(db.String)
     label = db.Column(db.String)
+    has_box = db.Column(db.Boolean)
+    folder_labelled = db.Column(db.Boolean)
     labelled = db.Column(db.Boolean)
     labelled_by = db.Column(db.Integer, db.ForeignKey(User.id, ondelete="CASCADE"))
     dataset_id = db.Column(db.Integer, db.ForeignKey(Dataset.id, ondelete="CASCADE"))
