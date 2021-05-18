@@ -66,6 +66,10 @@ def dataset_items_manipulation(item_id, **kwargs):
         item.labelled_by = labeller
         item.labelled = True
         item.save()
+        images = Image.query.filter_by(item_id=item_id)
+        for image in images:
+            image.folder_labelled = True
+            image.save()
         response = jsonify(
             {
                 "id": item.id,
@@ -181,6 +185,7 @@ def add_bounding_box(image_id):
     cervical_area = request.data.get("bounding_box", "")
     image = Image.query.filter_by(id=image_id).first()
     image.cervical_area = cervical_area
+    image.has_box = True
     image.save()
     response = jsonify({
         "id": image.id,
