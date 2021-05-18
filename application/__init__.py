@@ -64,25 +64,11 @@ def create_app(config_name):
             for dataset in datasets:
                 # Calculating labelling progress
 
-                label_count = 0
-                total_count = 0
-                labelled_items = Item.query.filter_by(dataset_id=dataset.id, labelled=True).count()
-                label_count += labelled_items
-                all_items = Item.query.filter_by(dataset_id=dataset.id).count()
-                total_count += all_items
-                items = Item.query.filter_by(dataset_id=dataset.id)
-                for item in items:
-                    labelled_images = Image.query.filter_by(item_id=item.id, labelled=True).count()
-                    all_images = Image.query.filter_by(item_id=item.id).count()
-                    label_count += labelled_images
-                    total_count += all_images
-                images_without_bounding_box = Image.query.filter_by(cervical_area=None, dataset_id=dataset.id).count()
-                print("unboxed images ", images_without_bounding_box)
-                images = Image.query.count()
-                print("all images", images)
-                images_with_bounding_box = images - images_without_bounding_box
-                if labelled_items and all_items:
-                    progress = ((label_count / total_count)/2 + (images_with_bounding_box/images)/2) * 100
+                labelled_images = Image.query.filter_by(dataset_id=dataset.id, labelled=True, has_box=True, folder_labelled=True).count()
+                all_images = Image.query.filter_by(dataset_id=dataset.id).count()
+
+                if labelled_images and all_images:
+                    progress = (labelled_images/all_images) * 100
                 else:
                     progress = 0
 
