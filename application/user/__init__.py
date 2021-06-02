@@ -35,10 +35,20 @@ def get_user_datasets(user_id, *kwargs):
     datasets = []
     for assignment in assignments:
         dataset = Dataset.query.filter_by(id=assignment.dataset_id).first()
+
+        labelled_images = Image.query.filter_by(dataset_id=assignment.dataset_id, labelled=True, has_box=True,
+                                                folder_labelled=True).count()
+        all_images = Image.query.filter_by(dataset_id=assignment.dataset_id).count()
+
+        if labelled_images and all_images:
+            progress = (labelled_images / all_images) * 100
+        else:
+            progress = 0
         dataset = {
             "id": dataset.id,
             "name": dataset.name,
-            "classes": dataset.classes
+            "classes": dataset.classes,
+            "progress": progress
         }
         datasets.append(dataset)
     response = jsonify({
