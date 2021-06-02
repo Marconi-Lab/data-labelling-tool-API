@@ -80,13 +80,19 @@ def dataset_items_manipulation(item_id, **kwargs):
         for image in images:
             image.folder_labelled = True
             image.save()
+        if item.labelled and Image.query.filter_by(item_id=item.id).count() == Image.query.filter_by(item_id=item.id,
+                                                                                                     labelled=True,
+                                                                                                     folder_labelled=True).count():
+            labelled = True
+        else:
+            labelled = False
         response = jsonify(
             {
                 "id": item.id,
                 "name": item.name,
                 "label": item.label,
                 "comment": item.comment,
-                "labelled": item.labelled,
+                "labelled": labelled,
                 "labelled_by": item.labelled_by
             }
         )
@@ -131,12 +137,18 @@ def get_dataset_items(dataset_id):
     data_items = list()
 
     for item in items:
+        if item.labelled and Image.query.filter_by(item_id=item.id).count() == Image.query.filter_by(item_id=item.id,
+                                                                                                     labelled=True,
+                                                                                                     folder_labelled=True).count():
+            labelled = True
+        else:
+            labelled = False
         obj = {
             "id": item.id,
             "name": item.name,
             "label": item.label,
             "comment": item.comment,
-            "labelled": item.labelled,
+            "labelled": labelled,
             "labelled_by": item.labelled_by
         }
         data_items.append(obj)
