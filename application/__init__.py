@@ -118,11 +118,11 @@ def create_app(config_name):
         else:
             # GET by ID
             labelled_items = Item.query.filter_by(dataset_id=dataset.id).count()
-            labelled_images = Image.query.filter_by(labelled=True).count()
+            labelled_images = Image.query.filter_by(labelled=True, has_box=True).count()
             all_images = Image.query.count()
             all_items = Item.query.count()
             if labelled_items and all_items:
-                progress = (labelled_items + labelled_images/all_images + all_items) * 100
+                progress = ((labelled_items + labelled_images)/(all_images + all_items)) * 100
             else:
                 progress = 0
 
