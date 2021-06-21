@@ -25,6 +25,13 @@ def item(dataset_id):
             results = []
 
             for item in items:
+                if item.labelled and Image.query.filter_by(item_id=item.id).count() == Image.query.filter_by(
+                        item_id=item.id,
+                        labelled=True,
+                        folder_labelled=True).count():
+                    labelled = True
+                else:
+                    labelled = False
                 images = Image.get_all(item.id)
                 image_URLs = [i.image_URL for i in images]
                 obj = {
@@ -34,7 +41,7 @@ def item(dataset_id):
                     "images_URLs": image_URLs,
                     "label": item.label,
                     "comment": item.comment,
-                    "labelled": item.labelled
+                    "labelled": labelled
                 }
                 results.append(obj)
             response = jsonify(results)
