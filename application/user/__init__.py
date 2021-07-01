@@ -139,7 +139,7 @@ def get_dataset_items(dataset_id):
     for item in items:
         if item.labelled and Image.query.filter_by(item_id=item.id).count() == Image.query.filter_by(item_id=item.id,
                                                                                                      labelled=True,
-                                                                                                     folder_labelled=True).count():
+                                                                                                      folder_labelled=True, has_box=True).count():
             labelled = True
         else:
             labelled = False
@@ -207,7 +207,11 @@ def add_bounding_box(image_id):
     cervical_area = request.data.get("bounding_box", "")
     image = Image.query.filter_by(id=image_id).first()
     image.cervical_area = cervical_area
-    image.has_box = True
+    print("cervic", cervical_area)
+    if cervical_area:
+        image.has_box = True
+    else:
+        image.has_box = False
     image.save()
     response = jsonify({
         "id": image.id,

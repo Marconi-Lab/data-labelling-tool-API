@@ -28,7 +28,7 @@ def item(dataset_id):
                 if item.labelled and Image.query.filter_by(item_id=item.id).count() == Image.query.filter_by(
                         item_id=item.id,
                         labelled=True,
-                        folder_labelled=True).count():
+                        folder_labelled=True, has_box=True).count():
                     labelled = True
                 else:
                     labelled = False
