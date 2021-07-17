@@ -1,8 +1,6 @@
 import io
 import os
 import csv
-import pathlib
-import zipfile
 
 from PIL import Image as Img
 from dotenv import load_dotenv
@@ -197,6 +195,53 @@ def stream_csv(dataset_id):
     return Response(
         stream_with_context(generate()), mimetype="text/csv", headers=headers
     )
+@admin_blueprint.route("/admin/download/object_detection", methods=["GET"])
+def object_detection_dataset():
+    try:
+        print(request.data)
+        users = request.args.getlist("users[]")
+        print("Users ids: ", users)
+        def generate():
+            data = StringIO()
+            w = csv.writer(data)
+            # writing header
+            w.writerow(('image', 'label', 'label 2', "comment", "cervical area"))
+            yield data.getvalue()
+            data.seek(0)
+            data.truncate(0)
+
+            # write row
+            for user_id in users:
+                print(user_id)
+                images = Image.query.filter_by(labelled_by=user_id).all()
+                user = User.query.filter_by(id=user_id).first()
+                print("These images   .... ", images)
+                for image in images:
+                    print(image)
+                    dataset = Dataset.query.filter_by(id=image.dataset_id).first()
+                    if not "cvc" in dataset.name:
+                        image_label = image.label
+                        cervical_area = image.cervical_area
+                        folder_label = Item.query.filter_by(id=image.item_id).first().label
+                        image_name_values = image.image_URL.split('/')[-1].split("_")
+                        image_name = user.username + "_"+image_name_values[-2] +"_"+ image_name_values[-1]
+                        image_comment = Item.query.filter_by(id=image.item_id).first().comment
+
+                        w.writerow([image_name, folder_label, image_label, image_comment, cervical_area])
+                        yield data.getvalue()
+                        data.seek(0)
+                        data.truncate(0)
+        # add filename
+        headers = Headers()
+        headers.set('Content-Disposition', 'attachment', filename=f"object_detection_dataset.csv")
+        # stream response as data is generated
+        return Response(
+            stream_with_context(generate()), mimetype="text/csv", headers=headers
+        )
+    except Exception as e:
+        response = jsonify({"message": str(e)})
+        print(response)
+        return response
 
 @admin_blueprint.route("/admin/<int:dataset_id>/item/", methods=["GET", "POST"])
 @permission_required()
