@@ -1,10 +1,12 @@
 import io
 import os
 import csv
+import json
 
 from PIL import Image as Img
+import pandas as pd
 from dotenv import load_dotenv
-from flask import Blueprint, request, jsonify, abort, url_for, send_from_directory, stream_with_context
+from flask import Blueprint, request, jsonify, abort, url_for, stream_with_context
 from werkzeug.utils import secure_filename
 
 from io import StringIO
@@ -195,12 +197,15 @@ def stream_csv(dataset_id):
     return Response(
         stream_with_context(generate()), mimetype="text/csv", headers=headers
     )
+
+
 @admin_blueprint.route("/admin/download/object_detection", methods=["GET"])
 def object_detection_dataset():
     try:
         print(request.data)
         users = request.args.getlist("users[]")
         print("Users ids: ", users)
+
         def generate():
             data = StringIO()
             w = csv.writer(data)
@@ -224,13 +229,14 @@ def object_detection_dataset():
                         cervical_area = image.cervical_area
                         folder_label = Item.query.filter_by(id=image.item_id).first().label
                         image_name_values = image.image_URL.split('/')[-1].split("_")
-                        image_name = user.username + "_"+image_name_values[-2] +"_"+ image_name_values[-1]
+                        image_name = user.username + "_" + image_name_values[-2] + "_" + image_name_values[-1]
                         image_comment = Item.query.filter_by(id=image.item_id).first().comment
 
                         w.writerow([image_name, folder_label, image_label, image_comment, cervical_area])
                         yield data.getvalue()
                         data.seek(0)
                         data.truncate(0)
+
         # add filename
         headers = Headers()
         headers.set('Content-Disposition', 'attachment', filename=f"object_detection_dataset.csv")
@@ -242,6 +248,63 @@ def object_detection_dataset():
         response = jsonify({"message": str(e)})
         print(response)
         return response
+
+
+@admin_blueprint.route("/admin/download/by_case", methods=["GET"])
+def ordered_by_case_dataset():
+    try:
+        cases = Item.query.all()
+        data = {"Case": [i.name for i in cases], "Nurse1_case_diagnosis": ["-" for i in cases],
+                "Nurse2_case_diagnosis": ["-" for i in cases],
+                "Jane_case_diagnosis": ["-" for i in cases],
+                "Nurse1_bounding_boxes": ["-" for i in cases], "Nurse2_bounding_boxes": ["-" for i in cases],
+                "Jane_bounding_boxes": ["-" for i in cases], "Label 2": ["-" for i in cases]}
+        df = pd.DataFrame.from_dict(data)
+        # print(df)
+        # df.transpose()
+        df.set_index("Case")
+        print(df)
+        users = request.args.getlist("users[]")
+        # write row
+        for user_id in users:
+            print(user_id)
+            items = Item.query.filter_by(labelled_by=user_id).all()
+            print("Here goes items ", items)
+            usr = User.query.filter_by(id=user_id).first()
+
+            for itm in list(items):
+                print(itm.label)
+                dataset = Dataset.query.filter_by(id=itm.dataset_id).first()
+                images = Image.query.filter_by(item_id=itm.id).all()
+                print("Image 1 label: ", images[0].label)
+                bounding_boxes = str([i.cervical_area for i in images])
+                label_2 = str([i.label for i in images])
+                if str(usr.username) == "Jane":
+                    df.loc[str(itm.name),"Jane_case_diagnosis"] = itm.label
+                    df.loc[str(itm.name), "Jane_bounding_boxes"] = bounding_boxes
+                    df.loc[itm.name,"Label 2"] = label_2
+                else:
+                    if not "cvc" in dataset.name:
+                        # image_label = image.label
+                        df.loc[str(itm.name),"Nurse1_case_diagnosis"] = itm.label
+                        df.loc[str(itm.name),"Nurse1_bounding_boxes"] = bounding_boxes
+                    else:
+                        df.loc[str(itm.name),"Nurse2_case_diagnosis"] = itm.label
+                        df.loc[str(itm.name),"Nurse2_bounding_boxes"] = bounding_boxes
+        df.fillna("")
+        # add filename
+        headers = Headers()
+        headers.set('Content-Disposition', 'attachment', filename=f"ordered_by_case.csv")
+        # stream response as data is generated
+        return Response(
+            df.to_csv(), mimetype="text/csv", headers=headers
+        )
+    except Exception as e:
+        raise e
+        response = jsonify({"message": str(e)})
+        print(response)
+        return response
+
 
 @admin_blueprint.route("/admin/<int:dataset_id>/item/", methods=["GET", "POST"])
 @permission_required()
