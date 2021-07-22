@@ -16,4 +16,5 @@ application/static/*
 
 benb
 migrations
+flask_monitoringdashboard.db
 
