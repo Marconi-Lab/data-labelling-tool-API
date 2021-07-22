@@ -16,29 +16,34 @@ uploads_dir = app.config["EXTERNAL_UPLOADS"]
 resized_uploads_dir = os.path.join(app.config["EXTERNAL_UPLOADS"], "resized")
 
 
-def create_image(picture, folder_name, folder_id, dataset_id, image_label):
-    image = Img.open(requests.get(picture, stream=True).raw)
-    if allowed_file(image.get_format_mimetype()):
-        print(image.get_format_mimetype(), "  image name ", image.filename)
-        image_name = secure_filename(folder_name +"-"+ str(uuid.uuid4())+ ".jpg")
-        print("Image name ", image_name)
-        image_resized = image.resize((512, 512), Img.ANTIALIAS)
-        # save original
-        image.save(os.path.join(uploads_dir, image_name))
-        print("saved image")
-        # save resized
-        image_resized.save(os.path.join(resized_uploads_dir, image_name))
+def create_image(picture, folder_name, folder_id, dataset_id, image_label, picture_key):
+    try:
+        image = Img.open(requests.get(picture, stream=True).raw)
 
-        image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=f"external/resized/{image_name}", _external=True)
-        print("image_url: ", image_url)
-        image_upload = Image(name=image_name, image_URL=image_url)
-        print("Created image upload")
-        image_upload.item_id = folder_id
-        image_upload.dataset_id = dataset_id
-        image_upload.label = image_label
-        image_upload.labelled = True
-        image_upload.save()
-        print("Concluded image upload")
+    except Exception as e:
+        return f"Error downloading {picture_key}"
+    else:
+        if allowed_file(image.get_format_mimetype()):
+            print(image.get_format_mimetype(), "  image name ", image.filename)
+            image_name = secure_filename(folder_name +"-"+ str(uuid.uuid4())+ ".jpg")
+            print("Image name ", image_name)
+            image_resized = image.resize((512, 512), Img.ANTIALIAS)
+            # save original
+            image.save(os.path.join(uploads_dir, image_name))
+            print("saved image")
+            # save resized
+            image_resized.save(os.path.join(resized_uploads_dir, image_name))
+
+            image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=f"external/resized/{image_name}", _external=True)
+            print("image_url: ", image_url)
+            image_upload = Image(name=image_name, image_URL=image_url)
+            print("Created image upload")
+            image_upload.item_id = folder_id
+            image_upload.dataset_id = dataset_id
+            image_upload.label = image_label
+            image_upload.labelled = True
+            image_upload.save()
+            print("Concluded image upload")
     return picture
 
 
@@ -63,19 +68,19 @@ def upload_data():
         #  create image_1
         image1_label = "Stained with acetic acid" if payload["picture1_before"]["acetic_acid"] else "Not stained with acetic acid"
         print("Image 1 label: ", image1_label)
-        image1_url = create_image(payload["picture1_before"]["request_image_url"], folder.name, folder.id, dataset.id, image1_label)
+        image1_url = create_image(payload["picture1_before"]["request_image_url"], folder.name, folder.id, dataset.id, image1_label, "picture1_before")
 
         #  create image_2
         image2_label = "Stained with acetic acid" if payload["picture2_before"]["acetic_acid"] else "Not stained with acetic acid"
-        image2_url = create_image(payload["picture2_before"]["request_image_url"], folder.name, folder.id, dataset.id, image2_label)
+        image2_url = create_image(payload["picture2_before"]["request_image_url"], folder.name, folder.id, dataset.id, image2_label, "picture2_before")
 
         #  create image_3
         image3_label = "Stained with acetic acid" if payload["picture3_after"]["acetic_acid"] else "Not stained with acetic acid"
-        image3_url = create_image(payload["picture3_after"]["request_image_url"], folder.name, folder.id, dataset.id, image3_label)
+        image3_url = create_image(payload["picture3_after"]["request_image_url"], folder.name, folder.id, dataset.id, image3_label, "picture3_after")
 
         #  create image_4
         image4_label = "Stained with acetic acid" if payload["picture4_after"]["acetic_acid"] else "Not stained with acetic acid"
-        image4_url = create_image(payload["picture4_after"]["request_image_url"], folder.name, folder.id, dataset.id, image4_label)
+        image4_url = create_image(payload["picture4_after"]["request_image_url"], folder.name, folder.id, dataset.id, image4_label, "picture4_after")
 
         response = jsonify({
             "picture1_before": {
@@ -107,4 +112,4 @@ def upload_data():
             "message": f"Error: {msg}"
         })
         print(msg)
-        # return response
+        return response
