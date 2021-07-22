@@ -63,6 +63,7 @@ def upload_data():
                                        "Bad quality images"])
             dataset.save()
         #  create item
+        assert payload["study_id"], "No study id found"
         folder = Item(name=payload["study_id"], dataset_id=dataset.id)
         folder.save()
         #  create image_1
@@ -112,4 +113,9 @@ def upload_data():
             "message": f"Error: {msg}"
         })
         print(msg)
-        return response
+        return response, 400
+    except AssertionError as msg:
+        response = jsonify({
+            "message": f"Error: {msg}"
+        })
+        return response, 400
