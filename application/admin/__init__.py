@@ -260,9 +260,7 @@ def ordered_by_case_dataset():
                 "Nurse1_bounding_boxes": ["-" for i in cases], "Nurse2_bounding_boxes": ["-" for i in cases],
                 "Jane_bounding_boxes": ["-" for i in cases], "Label 2": ["-" for i in cases]}
         df = pd.DataFrame.from_dict(data)
-        # print(df)
-        # df.transpose()
-        df.set_index("Case")
+        df.set_index("Case", inplace=True)
         print(df)
         users = request.args.getlist("users[]")
         # write row
@@ -282,7 +280,7 @@ def ordered_by_case_dataset():
                 if str(usr.username) == "Jane":
                     df.loc[str(itm.name),"Jane_case_diagnosis"] = itm.label
                     df.loc[str(itm.name), "Jane_bounding_boxes"] = bounding_boxes
-                    df.loc[itm.name,"Label 2"] = label_2
+                    df.loc[str(itm.name),"Label 2"] = label_2
                 else:
                     if not "cvc" in dataset.name:
                         # image_label = image.label
@@ -300,7 +298,7 @@ def ordered_by_case_dataset():
         headers.set('Content-Disposition', 'attachment', filename=f"ordered_by_case.csv")
         # stream response as data is generated
         return Response(
-            stream_with_context(df.to_csv()), mimetype="text/csv", headers=headers
+            stream_with_context(df.to_csv(chunksize=100)), mimetype="text/csv", headers=headers
         )
     except Exception as e:
         raise e
