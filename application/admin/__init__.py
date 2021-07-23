@@ -288,6 +288,9 @@ def ordered_by_case_dataset():
                         # image_label = image.label
                         df.loc[str(itm.name),"Nurse1_case_diagnosis"] = itm.label
                         df.loc[str(itm.name),"Nurse1_bounding_boxes"] = bounding_boxes
+                        if usr.username == 'AvakoFlorence':
+                            df.loc[str(itm.name), "Nurse2_case_diagnosis"] = itm.label
+                            df.loc[str(itm.name), "Nurse2_bounding_boxes"] = bounding_boxes
                     else:
                         df.loc[str(itm.name),"Nurse2_case_diagnosis"] = itm.label
                         df.loc[str(itm.name),"Nurse2_bounding_boxes"] = bounding_boxes
