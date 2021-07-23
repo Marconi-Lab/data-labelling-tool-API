@@ -297,7 +297,7 @@ def ordered_by_case_dataset():
         headers.set('Content-Disposition', 'attachment', filename=f"ordered_by_case.csv")
         # stream response as data is generated
         return Response(
-            df.to_csv(), mimetype="text/csv", headers=headers
+            stream_with_context(df.to_csv()), mimetype="text/csv", headers=headers
         )
     except Exception as e:
         raise e
