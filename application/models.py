@@ -198,7 +198,7 @@ class Image(db.Model):
 
 class Assignment(db.Model):
     """Class for dataset labelling assignments"""
-    __tablename__ = "assigniments"
+    __tablename__ = "assignments"
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey(User.id, ondelete="CASCADE"))
