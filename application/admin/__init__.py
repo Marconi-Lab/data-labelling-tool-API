@@ -255,7 +255,8 @@ def ordered_by_case_dataset():
     try:
         cases = Item.query.all()
         case_ids = list(set([i.name for i in cases]))
-        data = {"Case": [i.name for i in case_ids], "Nurse1_case_diagnosis": ["-" for i in case_ids],
+        case_ids.sort()
+        data = {"Case": case_ids, "Nurse1_case_diagnosis": ["-" for i in case_ids],
                 "Nurse2_case_diagnosis": ["-" for i in case_ids],
                 "Jane_case_diagnosis": ["-" for i in case_ids],
                 "Nurse1_bounding_boxes": ["-" for i in case_ids], "Nurse2_bounding_boxes": ["-" for i in case_ids],
