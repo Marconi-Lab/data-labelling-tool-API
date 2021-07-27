@@ -276,24 +276,27 @@ def ordered_by_case_dataset():
                 print(itm.label)
                 dataset = Dataset.query.filter_by(id=itm.dataset_id).first()
                 images = Image.query.filter_by(item_id=itm.id).all()
-                print("Image 1 label: ", images[0].label)
                 bounding_boxes = str([i.cervical_area for i in images])
                 label_2 = str([i.label for i in images])
                 if str(usr.username) == "Jane":
                     df.loc[str(itm.name),"Jane_case_diagnosis"] = itm.label
                     df.loc[str(itm.name), "Jane_bounding_boxes"] = bounding_boxes
-                    df.loc[str(itm.name),"Label 2"] = label_2
+                    df.loc[str(itm.name),"Jane_Label_2"] = label_2
                 else:
                     if not "cvc" in dataset.name:
                         # image_label = image.label
                         df.loc[str(itm.name),"Nurse1_case_diagnosis"] = itm.label
                         df.loc[str(itm.name),"Nurse1_bounding_boxes"] = bounding_boxes
+                        df.loc[str(itm.name), "Nurse1_Label_2"] = label_2
                         if usr.username == 'AvakoFlorence':
                             df.loc[str(itm.name), "Nurse2_case_diagnosis"] = itm.label
                             df.loc[str(itm.name), "Nurse2_bounding_boxes"] = bounding_boxes
+                            df.loc[str(itm.name), "Nurse2_Label_2"] = label_2
                     else:
                         df.loc[str(itm.name),"Nurse2_case_diagnosis"] = itm.label
                         df.loc[str(itm.name),"Nurse2_bounding_boxes"] = bounding_boxes
+                        df.loc[str(itm.name), "Nurse2_Label_2"] = label_2
+
         df.fillna("")
         # add filename
         headers = Headers()
