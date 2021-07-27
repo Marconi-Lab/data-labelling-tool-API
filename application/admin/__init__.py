@@ -254,11 +254,12 @@ def object_detection_dataset():
 def ordered_by_case_dataset():
     try:
         cases = Item.query.all()
-        data = {"Case": [i.name for i in cases], "Nurse1_case_diagnosis": ["-" for i in cases],
-                "Nurse2_case_diagnosis": ["-" for i in cases],
-                "Jane_case_diagnosis": ["-" for i in cases],
-                "Nurse1_bounding_boxes": ["-" for i in cases], "Nurse2_bounding_boxes": ["-" for i in cases],
-                "Jane_bounding_boxes": ["-" for i in cases], "Label 2": ["-" for i in cases]}
+        case_ids = list(set([i.name for i in cases]))
+        data = {"Case": [i.name for i in case_ids], "Nurse1_case_diagnosis": ["-" for i in case_ids],
+                "Nurse2_case_diagnosis": ["-" for i in case_ids],
+                "Jane_case_diagnosis": ["-" for i in case_ids],
+                "Nurse1_bounding_boxes": ["-" for i in case_ids], "Nurse2_bounding_boxes": ["-" for i in case_ids],
+                "Jane_bounding_boxes": ["-" for i in case_ids], "Label 2": ["-" for i in case_ids]}
         df = pd.DataFrame.from_dict(data)
         df.set_index("Case", inplace=True)
         print(df)
