@@ -276,7 +276,7 @@ def ordered_by_case_dataset():
                 print(itm.label)
                 dataset = Dataset.query.filter_by(id=itm.dataset_id).first()
                 images = Image.query.filter_by(item_id=itm.id).all()
-                print("Image 1 label: ", images[0].label)
+                #print("Image 1 label: ", images[0].label)
                 bounding_boxes = str([i.cervical_area for i in images])
                 label_2 = str([i.label for i in images])
                 if str(usr.username) == "Jane":
