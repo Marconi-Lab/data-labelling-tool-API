@@ -263,37 +263,36 @@ def ordered_by_case_dataset():
                 "Jane_bounding_boxes": ["-" for i in case_ids], "Label 2": ["-" for i in case_ids]}
         df = pd.DataFrame.from_dict(data)
         df.set_index("Case", inplace=True)
-        print(df)
         users = request.args.getlist("users[]")
         # write row
         for user_id in users:
-            print(user_id)
             items = Item.query.filter_by(labelled_by=user_id).all()
-            print("Here goes items ", items)
             usr = User.query.filter_by(id=user_id).first()
 
             for itm in list(items):
-                print(itm.label)
                 dataset = Dataset.query.filter_by(id=itm.dataset_id).first()
                 images = Image.query.filter_by(item_id=itm.id).all()
-                #print("Image 1 label: ", images[0].label)
                 bounding_boxes = str([i.cervical_area for i in images])
                 label_2 = str([i.label for i in images])
                 if str(usr.username) == "Jane":
                     df.loc[str(itm.name),"Jane_case_diagnosis"] = itm.label
                     df.loc[str(itm.name), "Jane_bounding_boxes"] = bounding_boxes
-                    df.loc[str(itm.name),"Label 2"] = label_2
+                    df.loc[str(itm.name),"Jane_Label_2"] = label_2
                 else:
                     if not "cvc" in dataset.name:
                         # image_label = image.label
                         df.loc[str(itm.name),"Nurse1_case_diagnosis"] = itm.label
                         df.loc[str(itm.name),"Nurse1_bounding_boxes"] = bounding_boxes
+                        df.loc[str(itm.name), "Nurse1_Label_2"] = label_2
                         if usr.username == 'AvakoFlorence':
                             df.loc[str(itm.name), "Nurse2_case_diagnosis"] = itm.label
                             df.loc[str(itm.name), "Nurse2_bounding_boxes"] = bounding_boxes
+                            df.loc[str(itm.name), "Nurse2_Label_2"] = label_2
                     else:
                         df.loc[str(itm.name),"Nurse2_case_diagnosis"] = itm.label
                         df.loc[str(itm.name),"Nurse2_bounding_boxes"] = bounding_boxes
+                        df.loc[str(itm.name), "Nurse2_Label_2"] = label_2
+
         df.fillna("")
         # add filename
         headers = Headers()
