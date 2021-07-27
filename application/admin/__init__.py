@@ -263,17 +263,13 @@ def ordered_by_case_dataset():
                 "Jane_bounding_boxes": ["-" for i in case_ids], "Label 2": ["-" for i in case_ids]}
         df = pd.DataFrame.from_dict(data)
         df.set_index("Case", inplace=True)
-        print(df)
         users = request.args.getlist("users[]")
         # write row
         for user_id in users:
-            print(user_id)
             items = Item.query.filter_by(labelled_by=user_id).all()
-            print("Here goes items ", items)
             usr = User.query.filter_by(id=user_id).first()
 
             for itm in list(items):
-                print(itm.label)
                 dataset = Dataset.query.filter_by(id=itm.dataset_id).first()
                 images = Image.query.filter_by(item_id=itm.id).all()
                 bounding_boxes = str([i.cervical_area for i in images])
