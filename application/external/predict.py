@@ -6,7 +6,7 @@ from PIL import Image
 import numpy as np
 import sys
 
-# import mscviplib
+import mscviplib
 
 
 filename = "./model.pb"
@@ -81,3 +81,69 @@ def update_orientation(image):
                 image = image.transpose(Image.FLIP_LEFT_RIGHT)
     return image
 
+
+def predict_image(image):
+    """
+    calls model's image prediction
+    image: input PIL image
+    returns prediction response as a dictionary. To get predictions, use result['predictions'][i]['tagName'] and result['predictions'][i]['probability']
+    """
+    log_msg("Predicting image")
+    try:
+        if image.mode != "RGB":
+            log_msg("Converting to RGB")
+            image = image.convert("RGB")
+
+        w, h = image.size
+        log_msg("Image size: " + str(w) + "x" + str(h))
+
+        # Update orientation based on EXIF tags
+        image = update_orientation(image)
+
+        metadata = mscviplib.GetImageMetadata(image)
+        cropped_image = mscviplib.PreprocessForInferenceAsTensor(
+            metadata,
+            image.tobytes(),
+            mscviplib.ResizeAndCropMethod.CropCenter,
+            (network_input_size, network_input_size),
+            mscviplib.InterpolationType.Bilinear,
+            mscviplib.ColorSpace.RGB,
+            (),
+            (),
+        )
+        cropped_image = np.moveaxis(cropped_image, 0, -1)
+
+        tf.compat.v1.reset_default_graph()
+        tf.import_graph_def(graph_def, name="")
+
+        with tf.compat.v1.Session() as sess:
+            prob_tensor = sess.graph.get_tensor_by_name(output_layer)
+            (predictions,) = sess.run(prob_tensor, {input_node: [cropped_image]})
+
+            result = []
+            for p, label in zip(predictions, labels):
+                truncated_probablity = np.float64(round(p, 8))
+                if truncated_probablity > 1e-8:
+                    result.append(
+                        {
+                            "tagName": label,
+                            "probability": truncated_probablity,
+                            "tagId": "",
+                            "boundingBox": None,
+                        }
+                    )
+
+            response = {
+                "id": "",
+                "project": "",
+                "iteration": "",
+                "created": datetime.utcnow().isoformat(),
+                "predictions": result,
+            }
+
+            log_msg("Results: " + str(response))
+            return response
+
+    except Exception as e:
+        log_msg(str(e))
+        return "Error: Could not preprocess image for prediction. " + str(e)
