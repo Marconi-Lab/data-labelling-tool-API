@@ -147,3 +147,14 @@ def predict_image(image):
     except Exception as e:
         log_msg(str(e))
         return "Error: Could not preprocess image for prediction. " + str(e)
+
+
+def predict_url(imageUrl):
+    """
+    predicts image by url
+    """
+    log_msg("Predicting from url: " + imageUrl)
+    with urlopen(imageUrl) as testImage:
+        image = Image.open(testImage)
+        return predict_image(image)
+
