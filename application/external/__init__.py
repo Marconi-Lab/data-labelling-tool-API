@@ -19,7 +19,6 @@ resized_uploads_dir = os.path.join(app.config["EXTERNAL_UPLOADS"], "resized")
 
 
 def create_image(picture, folder_name, folder_id, dataset_id, image_label, picture_key):
-    initialize()
     try:
         image = Img.open(requests.get(picture, stream=True).raw)
     except Exception as e:
@@ -54,6 +53,7 @@ def create_image(picture, folder_name, folder_id, dataset_id, image_label, pictu
 @external_blueprint.route("/upload", methods=["POST"])
 def upload_data():
     try:
+        initialize()
         payload = request.get_json()
         print("Payload ", payload["picture1_before"])
         #  check if dataset exists if not create it
