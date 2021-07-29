@@ -1,18 +1,18 @@
 from urllib.request import urlopen
 from datetime import datetime
 import tensorflow as tf
-
 from PIL import Image
+import os
 import numpy as np
 import sys
 
 import mscviplib
 
 
-filename = "./model.pb"
-labels_filename = "labels.txt"
+filename = os.path.join(os.getcwd(),"application", "external","saved_model", "saved_model.pb")
+labels_filename = os.path.join(os.getcwd(),"application", "external", "labels.txt")
 
-network_input_size = 0
+network_input_size = 1024
 
 output_layer = "model_output:0"
 input_node = "data:0"
@@ -55,6 +55,7 @@ def update_orientation(image):
     image: input PIL image
     returns corrected PIL image
     """
+    print("Updating image orientation")
     exif_orientation_tag = 0x0112
     if hasattr(image, "_getexif"):
         exif = image._getexif()
@@ -79,6 +80,7 @@ def update_orientation(image):
                 or orientation == 6
             ):
                 image = image.transpose(Image.FLIP_LEFT_RIGHT)
+    print("Orientation update complete.")
     return image
 
 
@@ -99,7 +101,6 @@ def predict_image(image):
 
         # Update orientation based on EXIF tags
         image = update_orientation(image)
-
         metadata = mscviplib.GetImageMetadata(image)
         cropped_image = mscviplib.PreprocessForInferenceAsTensor(
             metadata,
@@ -127,25 +128,32 @@ def predict_image(image):
                     result.append(
                         {
                             "tagName": label,
-                            "probability": truncated_probablity,
-                            "tagId": "",
-                            "boundingBox": None,
+                            "probability": truncated_probablity
                         }
                     )
+            if result[0]["probability"] > result[1]["probability"]:
+                predicted_dict = result[0]
+            else:
+                predicted_dict = result[1]
 
             response = {
                 "id": "",
                 "project": "",
                 "iteration": "",
                 "created": datetime.utcnow().isoformat(),
-                "predictions": result,
+                "predictions": {
+                    "class": predicted_dict["tagName"],
+                    "negative_confidence": result[0]["probability"],
+                    "positive_confidence": result[1]["probability"]
+                },
             }
 
             log_msg("Results: " + str(response))
             return response
 
     except Exception as e:
-        log_msg(str(e))
+        print("Error :", e)
+        log_msg("Exception: " +str(e))
         return "Error: Could not preprocess image for prediction. " + str(e)
 
 
