@@ -10,6 +10,8 @@ from flask import current_app as app
 from application.models import Image, Item, Dataset
 from ..admin import allowed_file
 
+from .predict import predict_url, initialize
+
 external_blueprint = Blueprint("external", __name__)
 
 uploads_dir = app.config["EXTERNAL_UPLOADS"]
@@ -17,13 +19,15 @@ resized_uploads_dir = os.path.join(app.config["EXTERNAL_UPLOADS"], "resized")
 
 
 def create_image(picture, folder_name, folder_id, dataset_id, image_label, picture_key):
+    initialize()
     try:
         image = Img.open(requests.get(picture, stream=True).raw)
-
     except Exception as e:
         return f"Error downloading {picture_key}"
     else:
         if allowed_file(image.get_format_mimetype()):
+            prediction = predict_url(picture)["predictions"]
+
             print(image.get_format_mimetype(), "  image name ", image.filename)
             image_name = secure_filename(folder_name +"-"+ str(uuid.uuid4())+ ".jpg")
             print("Image name ", image_name)
@@ -44,7 +48,7 @@ def create_image(picture, folder_name, folder_id, dataset_id, image_label, pictu
             image_upload.labelled = True
             image_upload.save()
             print("Concluded image upload")
-    return picture
+    return (picture, prediction)
 
 
 @external_blueprint.route("/upload", methods=["POST"])
@@ -66,51 +70,55 @@ def upload_data():
         assert payload["study_id"], "No study id found"
         folder = Item(name=payload["study_id"], dataset_id=dataset.id)
         folder.save()
+
+        predicted_classes = list()
         #  create image_1
         image1_label = "Stained with acetic acid" if payload["picture1_before"]["acetic_acid"] else "Not stained with acetic acid"
         print("Image 1 label: ", image1_label)
-        image1_url = create_image(payload["picture1_before"]["request_image_url"], folder.name, folder.id, dataset.id, image1_label, "picture1_before")
-
+        image1_url, pred1 = create_image(payload["picture1_before"]["request_image_url"], folder.name, folder.id, dataset.id, image1_label, "picture1_before")
+        predicted_classes.append(pred1["class"])
         #  create image_2
         image2_label = "Stained with acetic acid" if payload["picture2_before"]["acetic_acid"] else "Not stained with acetic acid"
-        image2_url = create_image(payload["picture2_before"]["request_image_url"], folder.name, folder.id, dataset.id, image2_label, "picture2_before")
-
+        image2_url, pred2 = create_image(payload["picture2_before"]["request_image_url"], folder.name, folder.id, dataset.id, image2_label, "picture2_before")
+        predicted_classes.append(pred2["class"])
         #  create image_3
         image3_label = "Stained with acetic acid" if payload["picture3_after"]["acetic_acid"] else "Not stained with acetic acid"
-        image3_url = create_image(payload["picture3_after"]["request_image_url"], folder.name, folder.id, dataset.id, image3_label, "picture3_after")
+        image3_url, pred3 = create_image(payload["picture3_after"]["request_image_url"], folder.name, folder.id, dataset.id, image3_label, "picture3_after")
+        predicted_classes.append(pred3["class"])
 
         #  create image_4
         image4_label = "Stained with acetic acid" if payload["picture4_after"]["acetic_acid"] else "Not stained with acetic acid"
-        image4_url = create_image(payload["picture4_after"]["request_image_url"], folder.name, folder.id, dataset.id, image4_label, "picture4_after")
+        image4_url, pred4 = create_image(payload["picture4_after"]["request_image_url"], folder.name, folder.id, dataset.id, image4_label, "picture4_after")
+        predicted_classes.append(pred4["class"])
 
         response = jsonify({
             "picture1_before": {
                 "request_image_url": image1_url,
-                "pred_class": "",
-                "negative_confidence": "0",
-                "positive_confidence": "0"
+                "pred_class": pred1["class"],
+                "negative_confidence": pred1["negative_confidence"],
+                "positive_confidence": pred1["positive_confidence"],
             },
             "picture2_before": {
                 "request_image_url": image2_url,
-                "pred_class": "",
-                "negative_confidence": "0",
-                "positive_confidence": "0"
+                "pred_class": pred2["class"],
+                "negative_confidence": pred2["negative_confidence"],
+                "positive_confidence": pred2["positive_confidence"],
             },"picture3_before": {
                 "request_image_url": image3_url,
-                "pred_class": "",
-                "negative_confidence": "0",
-                "positive_confidence": "0"
+                "pred_class": pred3["class"],
+                "negative_confidence": pred3["negative_confidence"],
+                "positive_confidence": pred3["positive_confidence"],
             },"picture4_before": {
                 "request_image_url": image4_url,
-                "pred_class": "",
-                "negative_confidence": "0",
-                "positive_confidence": "0"
-            },
+                "pred_class": pred4["class"],
+                "negative_confidence": pred4["negative_confidence"],
+                "positive_confidence": pred4["positive_confidence"],
+            }
         })
         return response
     except Exception as msg:
         response = jsonify({
-            "message": f"Error: {msg}"
+            "message": f"Exception error: {msg}"
         })
         print(msg)
         return response, 400
