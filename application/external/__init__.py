@@ -91,7 +91,16 @@ def upload_data():
         image4_url, pred4 = create_image(payload["picture4_after"]["request_image_url"], folder.name, folder.id, dataset.id, image4_label, "picture4_after")
         predicted_classes.append(pred4["class"])
 
+        def most_frequent(List):
+            return max(set(List), key=List.count)
+        if predicted_classes.count(predicted_classes[0]) == 2:
+            predicted_class = "Not sure"
+        else:
+            predicted_class = str(most_frequent(predicted_classes))
         response = jsonify({
+            "positive_threshold": payload["positive_threshold"],
+            "study_id": payload["study_id"],
+            "via_results": predicted_class,
             "picture1_before": {
                 "request_image_url": image1_url,
                 "pred_class": pred1["class"],
