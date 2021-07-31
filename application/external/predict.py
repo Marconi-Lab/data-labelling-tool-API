@@ -55,7 +55,6 @@ def update_orientation(image):
     image: input PIL image
     returns corrected PIL image
     """
-    print("Updating image orientation")
     exif_orientation_tag = 0x0112
     if hasattr(image, "_getexif"):
         exif = image._getexif()
@@ -80,7 +79,6 @@ def update_orientation(image):
                 or orientation == 6
             ):
                 image = image.transpose(Image.FLIP_LEFT_RIGHT)
-    print("Orientation update complete.")
     return image
 
 
