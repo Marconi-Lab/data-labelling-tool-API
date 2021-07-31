@@ -28,7 +28,7 @@ def create_image(picture, folder_name, folder_id, dataset_id, image_label, pictu
             prediction = predict_url(picture)["predictions"]
 
             print(image.get_format_mimetype(), "  image name ", image.filename)
-            image_name = secure_filename(folder_name +"-"+ str(uuid.uuid4())+ ".jpg")
+            image_name = secure_filename(folder_name + "-" + str(uuid.uuid4()) + ".jpg")
             print("Image name ", image_name)
             image_resized = image.resize((512, 512), Img.ANTIALIAS)
             # save original
@@ -37,7 +37,8 @@ def create_image(picture, folder_name, folder_id, dataset_id, image_label, pictu
             # save resized
             image_resized.save(os.path.join(resized_uploads_dir, image_name))
 
-            image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=f"external/resized/{image_name}", _external=True)
+            image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=f"external/resized/{image_name}",
+                                _external=True)
             print("image_url: ", image_url)
             image_upload = Image(name=image_name, image_URL=image_url)
             print("Created image upload")
@@ -74,8 +75,12 @@ def upload_data():
         predicted_classes = list()
         #  create image_1
         try:
-            image1_label = "Stained with acetic acid" if payload["picture1_before"]["acetic_acid"] else "Not stained with acetic acid"
-            image1_url, pred1 = create_image(payload["picture1_before"]["request_image_url"], folder.name, folder.id, dataset.id, image1_label, "picture1_before")
+            if int(payload["picture1_before"]["acetic_acid"]):
+                image1_label = "Stained with acetic acid"
+            else:
+                image1_label = "Not stained with acetic acid"
+            image1_url, pred1 = create_image(payload["picture1_before"]["request_image_url"], folder.name, folder.id,
+                                             dataset.id, image1_label, "picture1_before")
             predicted_classes.append(pred1["class"])
         except ValueError:
             return jsonify({
@@ -83,8 +88,12 @@ def upload_data():
             }), 400
         #  create image_2
         try:
-            image2_label = "Stained with acetic acid" if payload["picture2_before"]["acetic_acid"] else "Not stained with acetic acid"
-            image2_url, pred2 = create_image(payload["picture2_before"]["request_image_url"], folder.name, folder.id, dataset.id, image2_label, "picture2_before")
+            if int(payload["picture2_before"]["acetic_acid"]):
+                image2_label = "Stained with acetic acid"
+            else:
+                image2_label = "Not stained with acetic acid"
+            image2_url, pred2 = create_image(payload["picture2_before"]["request_image_url"], folder.name, folder.id,
+                                             dataset.id, image2_label, "picture2_before")
             predicted_classes.append(pred2["class"])
         except ValueError:
             return jsonify({
@@ -92,8 +101,13 @@ def upload_data():
             }), 400
         #  create image_3
         try:
-            image3_label = "Stained with acetic acid" if payload["picture3_after"]["acetic_acid"] else "Not stained with acetic acid"
-            image3_url, pred3 = create_image(payload["picture3_after"]["request_image_url"], folder.name, folder.id, dataset.id, image3_label, "picture3_after")
+            if int(payload["picture3_after"]["acetic_acid"]):
+                image3_label = "Stained with acetic acid"
+            else:
+                image3_label = "Not stained with acetic acid"
+
+            image3_url, pred3 = create_image(payload["picture3_after"]["request_image_url"], folder.name, folder.id,
+                                             dataset.id, image3_label, "picture3_after")
             predicted_classes.append(pred3["class"])
         except ValueError:
             return jsonify({
@@ -102,8 +116,13 @@ def upload_data():
 
         #  create image_4
         try:
-            image4_label = "Stained with acetic acid" if payload["picture4_after"]["acetic_acid"] else "Not stained with acetic acid"
-            image4_url, pred4 = create_image(payload["picture4_after"]["request_image_url"], folder.name, folder.id, dataset.id, image4_label, "picture4_after")
+            if int(payload["picture4_after"]["acetic_acid"]):
+                image4_label = "Stained with acetic acid"
+            else:
+                image4_label = "Not stained with acetic acid"
+
+            image4_url, pred4 = create_image(payload["picture4_after"]["request_image_url"], folder.name, folder.id,
+                                             dataset.id, image4_label, "picture4_after")
             predicted_classes.append(pred4["class"])
         except ValueError:
             return jsonify({
@@ -112,6 +131,7 @@ def upload_data():
 
         def most_frequent(List):
             return max(set(List), key=List.count)
+
         if predicted_classes.count(predicted_classes[0]) == 2:
             predicted_class = "Not sure"
         else:
@@ -131,12 +151,12 @@ def upload_data():
                 "pred_class": pred2["class"],
                 "negative_confidence": pred2["negative_confidence"],
                 "positive_confidence": pred2["positive_confidence"],
-            },"picture3_after": {
+            }, "picture3_after": {
                 "request_image_url": image3_url,
                 "pred_class": pred3["class"],
                 "negative_confidence": pred3["negative_confidence"],
                 "positive_confidence": pred3["positive_confidence"],
-            },"picture4_after": {
+            }, "picture4_after": {
                 "request_image_url": image4_url,
                 "pred_class": pred4["class"],
                 "negative_confidence": pred4["negative_confidence"],
