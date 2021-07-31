@@ -79,8 +79,8 @@ def upload_data():
             predicted_classes.append(pred1["class"])
         except ValueError:
             return jsonify({
-                "Message": f"Could not download image: {payload['picture1_before']['request_image_url']}"
-            })
+                "Message": f"Could not download picture1_before: {payload['picture1_before']['request_image_url']}"
+            }), 400
         #  create image_2
         try:
             image2_label = "Stained with acetic acid" if payload["picture2_before"]["acetic_acid"] else "Not stained with acetic acid"
@@ -88,8 +88,8 @@ def upload_data():
             predicted_classes.append(pred2["class"])
         except ValueError:
             return jsonify({
-                "Message": f"Could not download image: {payload['picture2_before']['request_image_url']}"
-            })
+                "Message": f"Could not download picture2_before: {payload['picture2_before']['request_image_url']}"
+            }), 400
         #  create image_3
         try:
             image3_label = "Stained with acetic acid" if payload["picture3_after"]["acetic_acid"] else "Not stained with acetic acid"
@@ -97,8 +97,8 @@ def upload_data():
             predicted_classes.append(pred3["class"])
         except ValueError:
             return jsonify({
-                "Message": f"Could not download image: {payload['picture3_before']['request_image_url']}"
-            })
+                "Message": f"Could not download picture3_after: {payload['picture3_after']['request_image_url']}"
+            }), 400
 
         #  create image_4
         try:
@@ -107,8 +107,8 @@ def upload_data():
             predicted_classes.append(pred4["class"])
         except ValueError:
             return jsonify({
-                "Message": f"Could not download image: {payload['picture4_before']['request_image_url']}"
-            })
+                "Message": f"Could not download picture4_after: {payload['picture4_after']['request_image_url']}"
+            }), 400
 
         def most_frequent(List):
             return max(set(List), key=List.count)
@@ -131,12 +131,12 @@ def upload_data():
                 "pred_class": pred2["class"],
                 "negative_confidence": pred2["negative_confidence"],
                 "positive_confidence": pred2["positive_confidence"],
-            },"picture3_before": {
+            },"picture3_after": {
                 "request_image_url": image3_url,
                 "pred_class": pred3["class"],
                 "negative_confidence": pred3["negative_confidence"],
                 "positive_confidence": pred3["positive_confidence"],
-            },"picture4_before": {
+            },"picture4_after": {
                 "request_image_url": image4_url,
                 "pred_class": pred4["class"],
                 "negative_confidence": pred4["negative_confidence"],
