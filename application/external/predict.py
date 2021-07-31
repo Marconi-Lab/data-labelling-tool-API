@@ -82,7 +82,7 @@ def update_orientation(image):
     return image
 
 
-def predict_image(image):
+def predict_image(image, positive_thres):
     """
     calls model's image prediction
     image: input PIL image
@@ -131,8 +131,15 @@ def predict_image(image):
                     )
             if result[0]["probability"] > result[1]["probability"]:
                 predicted_dict = result[0]
+                predicted_name = "Negative"
             else:
                 predicted_dict = result[1]
+
+                if positive_thres > result[1]["probability"]:
+                    predicted_name = "Negative"
+                else:
+                    predicted_name = "Positive"
+
 
             response = {
                 "id": "",
@@ -140,7 +147,7 @@ def predict_image(image):
                 "iteration": "",
                 "created": datetime.utcnow().isoformat(),
                 "predictions": {
-                    "class": predicted_dict["tagName"][3:],
+                    "class": predicted_name,
                     "negative_confidence": round(result[0]["probability"], 4),
                     "positive_confidence": round(result[1]["probability"], 4)
                 },
@@ -155,12 +162,12 @@ def predict_image(image):
         return "Error: Could not preprocess image for prediction. " + str(e)
 
 
-def predict_url(imageUrl):
+def predict_url(imageUrl, pos_thres):
     """
     predicts image by url
     """
     log_msg("Predicting from url: " + imageUrl)
     with urlopen(imageUrl) as testImage:
         image = Image.open(testImage)
-        return predict_image(image)
+        return predict_image(image, pos_thres)
 
