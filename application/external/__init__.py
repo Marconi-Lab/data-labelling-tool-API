@@ -18,14 +18,14 @@ uploads_dir = app.config["EXTERNAL_UPLOADS"]
 resized_uploads_dir = os.path.join(app.config["EXTERNAL_UPLOADS"], "resized")
 
 
-def create_image(picture, folder_name, folder_id, dataset_id, image_label, picture_key):
+def create_image(picture, folder_name, folder_id, dataset_id, image_label, picture_key, pos_thres):
     try:
         image = Img.open(requests.get(picture, stream=True).raw)
     except Exception as e:
         return f"Error downloading {picture_key}"
     else:
         if allowed_file(image.get_format_mimetype()):
-            prediction = predict_url(picture)["predictions"]
+            prediction = predict_url(picture, pos_thres)["predictions"]
 
             print(image.get_format_mimetype(), "  image name ", image.filename)
             image_name = secure_filename(folder_name + "-" + str(uuid.uuid4()) + ".jpg")
@@ -80,7 +80,7 @@ def upload_data():
             else:
                 image1_label = "Not stained with acetic acid"
             image1_url, pred1 = create_image(payload["picture1_before"]["request_image_url"], folder.name, folder.id,
-                                             dataset.id, image1_label, "picture1_before")
+                                             dataset.id, image1_label, "picture1_before", payload["positive_threshold"])
             predicted_classes.append(pred1["class"])
         except ValueError:
             return jsonify({
@@ -93,7 +93,7 @@ def upload_data():
             else:
                 image2_label = "Not stained with acetic acid"
             image2_url, pred2 = create_image(payload["picture2_before"]["request_image_url"], folder.name, folder.id,
-                                             dataset.id, image2_label, "picture2_before")
+                                             dataset.id, image2_label, "picture2_before", payload["positive_threshold"])
             predicted_classes.append(pred2["class"])
         except ValueError:
             return jsonify({
@@ -107,7 +107,7 @@ def upload_data():
                 image3_label = "Not stained with acetic acid"
 
             image3_url, pred3 = create_image(payload["picture3_after"]["request_image_url"], folder.name, folder.id,
-                                             dataset.id, image3_label, "picture3_after")
+                                             dataset.id, image3_label, "picture3_after", payload["positive_threshold"])
             predicted_classes.append(pred3["class"])
         except ValueError:
             return jsonify({
@@ -122,7 +122,7 @@ def upload_data():
                 image4_label = "Not stained with acetic acid"
 
             image4_url, pred4 = create_image(payload["picture4_after"]["request_image_url"], folder.name, folder.id,
-                                             dataset.id, image4_label, "picture4_after")
+                                             dataset.id, image4_label, "picture4_after", payload["positive_threshold"])
             predicted_classes.append(pred4["class"])
         except ValueError:
             return jsonify({
@@ -140,7 +140,7 @@ def upload_data():
             "model_version": "2.0.0",
             "positive_threshold": payload["positive_threshold"],
             "study_id": payload["study_id"],
-            "via_results": predicted_class,
+            "via_result": predicted_class,
             "picture1_before": {
                 "request_image_url": image1_url,
                 "pred_class": pred1["class"],
