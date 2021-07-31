@@ -142,7 +142,7 @@ def predict_image(image):
                 "iteration": "",
                 "created": datetime.utcnow().isoformat(),
                 "predictions": {
-                    "class": predicted_dict["tagName"],
+                    "class": predicted_dict["tagName"][3:],
                     "negative_confidence": result[0]["probability"],
                     "positive_confidence": result[1]["probability"]
                 },
