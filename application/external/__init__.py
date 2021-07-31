@@ -137,6 +137,7 @@ def upload_data():
         else:
             predicted_class = str(most_frequent(predicted_classes))
         response = jsonify({
+            "model_version": "2.0.0",
             "positive_threshold": payload["positive_threshold"],
             "study_id": payload["study_id"],
             "via_results": predicted_class,
