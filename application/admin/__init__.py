@@ -257,8 +257,7 @@ def ordered_by_case_dataset():
         case_ids = list(set([i.name for i in cases]))
         case_ids.sort()
         data = {"Case": case_ids, "Nurse1_case_diagnosis": ["-" for i in case_ids], "Nurse1": ["-" for i in case_ids],
-                "Nurse2": ["-" for i in case_ids],
-                "Nurse2_case_diagnosis": ["-" for i in case_ids],
+                "Nurse2_case_diagnosis": ["-" for i in case_ids], "Nurse2": ["-" for i in case_ids],
                 "Jane_case_diagnosis": ["-" for i in case_ids],
                 "Nurse1_bounding_boxes": ["-" for i in case_ids], "Nurse2_bounding_boxes": ["-" for i in case_ids],
                 "Jane_bounding_boxes": ["-" for i in case_ids], "Nurse1_Label_2": ["-" for i in case_ids],
