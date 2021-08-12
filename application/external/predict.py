@@ -130,15 +130,15 @@ def predict_image(image, positive_thres):
                         }
                     )
             if result[0]["probability"] > result[1]["probability"]:
-                predicted_dict = result[0]
+                # predicted_dict = result[0]
                 predicted_name = "Negative"
             else:
-                predicted_dict = result[1]
-
-                if positive_thres > result[1]["probability"]:
-                    predicted_name = "Negative"
-                else:
-                    predicted_name = "Positive"
+                # predicted_dict = result[1]
+                #
+                # if positive_thres > result[1]["probability"]:
+                #     predicted_name = "Negative"
+                # else:
+                predicted_name = "Positive"
 
 
             response = {
