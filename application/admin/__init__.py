@@ -143,7 +143,6 @@ def add_image_classes(id):
     response.status_code = 200
     return response
 
-
 @admin_blueprint.route('/admin/datasets/<int:id>/classes/', methods=['PUT'])
 @permission_required()
 def updated_folder_classes(id):
@@ -493,6 +492,20 @@ def user_assignments_manipulation(user_id, **kwargs):
         response.status_code = 200
         return response
 
+@admin_blueprint.route('/admin/users/<int:id>/', methods=['PUT'])
+@permission_required()
+def add_user_site(id):
+    user = User.query.filter_by(id=id).first()
+    site = list(request.data.get("site"))
+    user.site = site
+    user.save()
+    response = jsonify({
+        "id": user.id,
+        "name": user.username,
+        "site": user.site
+    })
+    response.status_code = 200
+    return response
 
 @admin_blueprint.route("/admin/users/<int:user_id>/assignments/<int:dataset_id>/", methods=["DELETE"])
 @permission_required()
@@ -675,3 +688,4 @@ def delete_image(image_id):
     })
     response.status_code = 200
     return response
+
