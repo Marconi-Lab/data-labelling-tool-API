@@ -723,3 +723,41 @@ def dashboard_allsites_stats():
     except Exception as e:
         print(Exception)
         print(e)
+
+@admin_blueprint.route("/admin/dashboard/<site>/", methods=["GET"])
+def dashboard_onesite_stats(site):
+    try:
+        users = User.query.filter_by(site=site).all()
+        site_stats = list()
+        for user in users:
+            id = user.id
+            name = user.username
+            assignments = Assignment.query.filter_by(user_id=user.id).all()
+            datasets = [Dataset.query.filter_by(id=i.dataset_id).first() for i in assignments ]
+            dataset_stats = list()
+            total_labelled = 0
+            total_unlabelled = 0
+            # Get assigned datasets stats.
+            for i, dataset in enumerate(datasets):
+                dataset_id = dataset.id
+                all_cases = Item.query.filter_by(dataset_id=dataset_id).count()
+                labelled_cases = Item.query.filter_by(labelled=True, dataset_id=dataset_id).count()
+                total_labelled += labelled_cases
+                total_unlabelled += (all_cases - labelled_cases)
+                dataset_stats.append({
+                    "id": dataset_id,
+                    "labelled": labelled_cases,
+                    "unlabelled": (all_cases - labelled_cases)
+                })
+            site_stats.append({
+                "id": id,
+                "name": name,
+                "datasets": dataset_stats,
+                "totalLabelled": total_labelled,
+                "totalUnlabelled": total_unlabelled
+            })
+        response = jsonify(site_stats)
+        response.status_code=200
+        return response
+    except Exception as e:
+        print (e)
