@@ -411,6 +411,11 @@ def user():
         dataset_count = assignments.count()
         record_count = Image.query.filter_by(labelled_by=user.id).count()
         datasets = list()
+        if user.site:
+            site = user.site
+        else:
+            site ="Not specified"
+
         for assignment in assignments:
             dataset = Dataset.query.filter_by(id=assignment.dataset_id).first()
             dataset = {
@@ -421,6 +426,7 @@ def user():
         obj = {
             "id": user.id,
             "username": user.username,
+            "site": site,
             "email": user.email,
             "dataset_count": dataset_count,
             "datasets": datasets,
@@ -496,7 +502,7 @@ def user_assignments_manipulation(user_id, **kwargs):
 @permission_required()
 def add_user_site(id):
     user = User.query.filter_by(id=id).first()
-    site = list(request.data.get("site"))
+    site = request.data.get("site")
     user.site = site
     user.save()
     response = jsonify({
