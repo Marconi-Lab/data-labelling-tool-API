@@ -143,7 +143,6 @@ def add_image_classes(id):
     response.status_code = 200
     return response
 
-
 @admin_blueprint.route('/admin/datasets/<int:id>/classes/', methods=['PUT'])
 @permission_required()
 def updated_folder_classes(id):
@@ -412,6 +411,11 @@ def user():
         dataset_count = assignments.count()
         record_count = Image.query.filter_by(labelled_by=user.id).count()
         datasets = list()
+        if user.site:
+            site = user.site
+        else:
+            site ="Not specified"
+
         for assignment in assignments:
             dataset = Dataset.query.filter_by(id=assignment.dataset_id).first()
             dataset = {
@@ -422,6 +426,7 @@ def user():
         obj = {
             "id": user.id,
             "username": user.username,
+            "site": site,
             "email": user.email,
             "dataset_count": dataset_count,
             "datasets": datasets,
@@ -493,6 +498,20 @@ def user_assignments_manipulation(user_id, **kwargs):
         response.status_code = 200
         return response
 
+@admin_blueprint.route('/admin/users/<int:id>/', methods=['PUT'])
+@permission_required()
+def add_user_site(id):
+    user = User.query.filter_by(id=id).first()
+    site = request.data.get("site")
+    user.site = site
+    user.save()
+    response = jsonify({
+        "id": user.id,
+        "name": user.username,
+        "site": user.site
+    })
+    response.status_code = 200
+    return response
 
 @admin_blueprint.route("/admin/users/<int:user_id>/assignments/<int:dataset_id>/", methods=["DELETE"])
 @permission_required()
@@ -675,3 +694,70 @@ def delete_image(image_id):
     })
     response.status_code = 200
     return response
+
+@admin_blueprint.route("/admin/dashboard/allsites/", methods=["GET"])
+def dashboard_allsites_stats():
+    try:
+        sites = ["arua", "jinja", "mayuge", "mbarara", "uci", "gynecologist"]
+        sites_stats = list()
+        for i,site in enumerate(sites):
+            users = User.query.filter_by(site=site).all()
+            labelled_cases=0
+            un_labelled_cases=0
+            for user in users:
+                user_assignments = Assignment.query.filter_by(user_id=user.id).all()
+                datasets = [i.dataset_id for i in user_assignments]
+                all = Item.query.filter(Item.dataset_id.in_(datasets)).count()
+                labelled = Item.query.filter_by(labelled_by=user.id, labelled=True).count()
+                labelled_cases += labelled
+                un_labelled_cases += (all-labelled)
+            sites_stats.append({
+                "id": i,
+                "name": site,
+                "labelledCases": labelled_cases,
+                "unLabelledCases": un_labelled_cases
+            })
+        response = jsonify(sites_stats)
+        response.status_code = 200
+        return response
+    except Exception as e:
+        print(Exception)
+        print(e)
+
+@admin_blueprint.route("/admin/dashboard/<site>/", methods=["GET"])
+def dashboard_onesite_stats(site):
+    try:
+        users = User.query.filter_by(site=site).all()
+        site_stats = list()
+        for user in users:
+            id = user.id
+            name = user.username
+            assignments = Assignment.query.filter_by(user_id=user.id).all()
+            datasets = [Dataset.query.filter_by(id=i.dataset_id).first() for i in assignments ]
+            dataset_stats = list()
+            total_labelled = 0
+            total_unlabelled = 0
+            # Get assigned datasets stats.
+            for i, dataset in enumerate(datasets):
+                dataset_id = dataset.id
+                all_cases = Item.query.filter_by(dataset_id=dataset_id).count()
+                labelled_cases = Item.query.filter_by(labelled=True, dataset_id=dataset_id).count()
+                total_labelled += labelled_cases
+                total_unlabelled += (all_cases - labelled_cases)
+                dataset_stats.append({
+                    "id": dataset_id,
+                    "labelled": labelled_cases,
+                    "unlabelled": (all_cases - labelled_cases)
+                })
+            site_stats.append({
+                "id": id,
+                "name": name,
+                "datasets": dataset_stats,
+                "totalLabelled": total_labelled,
+                "totalUnlabelled": total_unlabelled
+            })
+        response = jsonify(site_stats)
+        response.status_code=200
+        return response
+    except Exception as e:
+        print (e)
