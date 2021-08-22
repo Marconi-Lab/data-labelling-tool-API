@@ -695,3 +695,31 @@ def delete_image(image_id):
     response.status_code = 200
     return response
 
+@admin_blueprint.route("/admin/dashboard/allsites/", methods=["GET"])
+def dashboard_allsites_stats():
+    try:
+        sites = ["arua", "jinja", "mayuge", "mbarara", "uci", "gynecologist"]
+        sites_stats = list()
+        for i,site in enumerate(sites):
+            users = User.query.filter_by(site=site).all()
+            labelled_cases=0
+            un_labelled_cases=0
+            for user in users:
+                user_assignments = Assignment.query.filter_by(user_id=user.id).all()
+                datasets = [i.dataset_id for i in user_assignments]
+                all = Item.query.filter(Item.dataset_id.in_(datasets)).count()
+                labelled = Item.query.filter_by(labelled_by=user.id, labelled=True).count()
+                labelled_cases += labelled
+                un_labelled_cases += (all-labelled)
+            sites_stats.append({
+                "id": i,
+                "name": site,
+                "labelledCases": labelled_cases,
+                "unLabelledCases": un_labelled_cases
+            })
+        response = jsonify(sites_stats)
+        response.status_code = 200
+        return response
+    except Exception as e:
+        print(Exception)
+        print(e)
