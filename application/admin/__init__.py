@@ -279,7 +279,7 @@ def ordered_by_case_dataset():
                         df.loc[str(itm.name), "Jane_case_diagnosis"]["oldform"] = itm.label
                         df.loc[str(itm.name), "Jane_bounding_boxes"]["oldform"] = bounding_boxes
                         df.loc[str(itm.name), "Jane_Label_2"]["oldform"] = label_2
-                    elif "new" in dataset.name and "U" in item.name:
+                    elif "new" in dataset.name and "U" in itm.name:
                             df.loc[str(itm.name), "Jane_case_diagnosis"]["newform"] = itm.label
                             df.loc[str(itm.name), "Jane_bounding_boxes"]["newform"] = bounding_boxes
                             df.loc[str(itm.name), "Jane_Label_2"]["newform"] = label_2
