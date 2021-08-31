@@ -18,7 +18,7 @@ uploads_dir = app.config["EXTERNAL_UPLOADS"]
 resized_uploads_dir = os.path.join(app.config["EXTERNAL_UPLOADS"], "resized")
 
 
-def create_image(picture, folder_name, folder_id, dataset_id, image_label, picture_key, pos_thres):
+def create_image(folder, picture, folder_name, folder_id, dataset_id, image_label, picture_key, pos_thres):
     try:
         image = Img.open(requests.get(picture, stream=True).raw)
     except Exception as e:
@@ -26,28 +26,30 @@ def create_image(picture, folder_name, folder_id, dataset_id, image_label, pictu
     else:
         if allowed_file(image.get_format_mimetype()):
             prediction = predict_url(picture, pos_thres)["predictions"]
+            if not folder:
+                print(image.get_format_mimetype(), "  image name ", image.filename)
+                image_name = secure_filename(folder_name + "-" + str(uuid.uuid4()) + ".jpg")
+                print("Image name ", image_name)
+                image_resized = image.resize((512, 512), Img.ANTIALIAS)
+                # save original
+                image.save(os.path.join(uploads_dir, image_name))
+                print("saved image")
+                # save resized
+                image_resized.save(os.path.join(resized_uploads_dir, image_name))
 
-            print(image.get_format_mimetype(), "  image name ", image.filename)
-            image_name = secure_filename(folder_name + "-" + str(uuid.uuid4()) + ".jpg")
-            print("Image name ", image_name)
-            image_resized = image.resize((512, 512), Img.ANTIALIAS)
-            # save original
-            image.save(os.path.join(uploads_dir, image_name))
-            print("saved image")
-            # save resized
-            image_resized.save(os.path.join(resized_uploads_dir, image_name))
-
-            image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=f"external/resized/{image_name}",
-                                _external=True)
-            print("image_url: ", image_url)
-            image_upload = Image(name=image_name, image_URL=image_url)
-            print("Created image upload")
-            image_upload.item_id = folder_id
-            image_upload.dataset_id = dataset_id
-            image_upload.label = image_label
-            image_upload.labelled = True
-            image_upload.save()
-            print("Concluded image upload")
+                image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=f"external/resized/{image_name}",
+                                    _external=True)
+                print("image_url: ", image_url)
+                image_upload = Image(name=image_name, image_URL=image_url)
+                print("Created image upload")
+                image_upload.item_id = folder_id
+                image_upload.dataset_id = dataset_id
+                image_upload.label = image_label
+                image_upload.labelled = True
+                image_upload.save()
+                print("Concluded image upload")
+            else:
+                print("Folder exists")
     return (picture, prediction)
 
 
@@ -69,8 +71,14 @@ def upload_data():
             dataset.save()
         #  create item
         assert payload["study_id"], "No study id found"
-        folder = Item(name=payload["study_id"], dataset_id=dataset.id)
-        folder.save()
+        folders = Item.query.filter_by(name=payload["study_id"]).all()
+        if len(folders) > 0:
+            folder_exists = True
+            folder = folders[0]
+        else:
+            folder_exists = False
+            folder = Item(name=payload["study_id"], dataset_id=dataset.id)
+            folder.save()
 
         predicted_classes = list()
         #  create image_1
@@ -79,7 +87,7 @@ def upload_data():
                 image1_label = "Stained with acetic acid"
             else:
                 image1_label = "Not stained with acetic acid"
-            image1_url, pred1 = create_image(payload["picture1_before"]["request_image_url"], folder.name, folder.id,
+            image1_url, pred1 = create_image(folder_exists, payload["picture1_before"]["request_image_url"], folder.name, folder.id,
                                              dataset.id, image1_label, "picture1_before", payload["positive_threshold"])
             predicted_classes.append(pred1["class"])
         except ValueError:
@@ -92,7 +100,7 @@ def upload_data():
                 image2_label = "Stained with acetic acid"
             else:
                 image2_label = "Not stained with acetic acid"
-            image2_url, pred2 = create_image(payload["picture2_before"]["request_image_url"], folder.name, folder.id,
+            image2_url, pred2 = create_image(folder_exists, payload["picture2_before"]["request_image_url"], folder.name, folder.id,
                                              dataset.id, image2_label, "picture2_before", payload["positive_threshold"])
             predicted_classes.append(pred2["class"])
         except ValueError:
@@ -106,7 +114,7 @@ def upload_data():
             else:
                 image3_label = "Not stained with acetic acid"
 
-            image3_url, pred3 = create_image(payload["picture3_after"]["request_image_url"], folder.name, folder.id,
+            image3_url, pred3 = create_image(folder_exists, payload["picture3_after"]["request_image_url"], folder.name, folder.id,
                                              dataset.id, image3_label, "picture3_after", payload["positive_threshold"])
             predicted_classes.append(pred3["class"])
         except ValueError:
@@ -121,7 +129,7 @@ def upload_data():
             else:
                 image4_label = "Not stained with acetic acid"
 
-            image4_url, pred4 = create_image(payload["picture4_after"]["request_image_url"], folder.name, folder.id,
+            image4_url, pred4 = create_image(folder_exists, payload["picture4_after"]["request_image_url"], folder.name, folder.id,
                                              dataset.id, image4_label, "picture4_after", payload["positive_threshold"])
             predicted_classes.append(pred4["class"])
         except ValueError:
