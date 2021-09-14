@@ -10,7 +10,7 @@ from flask import current_app as app
 from application.models import Image, Item, Dataset
 from ..admin import allowed_file
 
-from .predict import predict_url, initialize
+from .predict import predict_url
 
 external_blueprint = Blueprint("external", __name__)
 
@@ -56,7 +56,6 @@ def create_image(folder, picture, folder_name, folder_id, dataset_id, image_labe
 @external_blueprint.route("/upload", methods=["POST"])
 def upload_data():
     try:
-        initialize()
         payload = request.get_json()
         print("Payload ", payload["picture1_before"])
         #  check if dataset exists if not create it

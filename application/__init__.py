@@ -13,7 +13,6 @@ db = SQLAlchemy()
 def create_app(config_name):
     from application.models import Dataset, User, Item, Image
     from application.decorators import permission_required
-
     app = FlaskAPI(__name__, instance_relative_config=True)
     CORS(app)
     app.config['CORS_HEADERS'] = ['Content-Type', 'Authorization', 'is_admin']
@@ -24,6 +23,8 @@ def create_app(config_name):
     dashboard.config.init_from(file="../dashboard_config.cfg")
     dashboard.bind(app)
     with app.app_context():
+        from .external.predict import initialize
+        initialize()
         db.init_app(app)
         from .auth import auth_blueprint
         app.register_blueprint(auth_blueprint, url_prefix="/api/v1")
