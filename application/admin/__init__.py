@@ -260,7 +260,10 @@ def ordered_by_case_dataset():
                 "Jane_case_diagnosis": [{} if "U" in i else "" for i in case_ids],
                 "Nurse1_bounding_boxes": [{} if "U" in i else "" for i in case_ids], "Nurse2_bounding_boxes": [{} if "U" in i else "" for i in case_ids],
                 "Jane_bounding_boxes": [{} if "U" in i else "" for i in case_ids], "Nurse1_Label_2": [{} if "U" in i else "" for i in case_ids],
-                "Nurse2_Label_2": [{} if "U" in i else "" for i in case_ids], "Jane_Label_2": [{} if "U" in i else "" for i in case_ids]}
+                "Nurse2_Label_2": [{} if "U" in i else "" for i in case_ids], "Jane_Label_2": [{} if "U" in i else "" for i in case_ids],
+                "Nurse1_images": [{} if "U" in i else "" for i in case_ids], "Nurse2_images": [{} if "U" in i else "" for i in case_ids],
+                "Jane_images": [{} if "U" in i else "" for i in case_ids]
+                }
         df = pd.DataFrame.from_dict(data)
         df.set_index("Case", inplace=True)
         users = request.args.getlist("users[]")
@@ -271,22 +274,27 @@ def ordered_by_case_dataset():
 
             for itm in list(items):
                 dataset = Dataset.query.filter_by(id=itm.dataset_id).first()
-                images = Image.query.filter_by(item_id=itm.id).all()
+                images = Image.query.filter_by(item_id=itm.id)
+                images = images.order_by(Image.id.asc())
                 bounding_boxes = str([i.cervical_area for i in images])
                 label_2 = str([i.label for i in images])
+                image_names = str([i.name.split("_")[-1] for i in images])
                 if str(usr.username) == "Jane" and str(usr.site) == "gynecologist":
                     if "old" in dataset.name and "U" in itm.name:
                         df.loc[str(itm.name), "Jane_case_diagnosis"]["oldform"] = itm.label
                         df.loc[str(itm.name), "Jane_bounding_boxes"]["oldform"] = bounding_boxes
                         df.loc[str(itm.name), "Jane_Label_2"]["oldform"] = label_2
+                        df.loc[str(itm.name), "Jane_images"]["oldform"] = image_names
                     elif "new" in dataset.name and "U" in itm.name:
                             df.loc[str(itm.name), "Jane_case_diagnosis"]["newform"] = itm.label
                             df.loc[str(itm.name), "Jane_bounding_boxes"]["newform"] = bounding_boxes
                             df.loc[str(itm.name), "Jane_Label_2"]["newform"] = label_2
+                            df.loc[str(itm.name), "Jane_images"]["newform"] = image_names
                     else:
                         df.loc[str(itm.name), "Jane_case_diagnosis"] = itm.label
                         df.loc[str(itm.name), "Jane_bounding_boxes"] = bounding_boxes
                         df.loc[str(itm.name), "Jane_Label_2"] = label_2
+                        df.loc[str(itm.name), "Jane_images"] = image_names
 
                 else:
                     if not "cvc" in dataset.name:
@@ -296,40 +304,48 @@ def ordered_by_case_dataset():
                             df.loc[str(itm.name), "Nurse2_bounding_boxes"] = bounding_boxes
                             df.loc[str(itm.name), "Nurse2"] = usr.username
                             df.loc[str(itm.name), "Nurse2_Label_2"] = label_2
+                            df.loc[str(itm.name), "Nurse2_images"] = image_names
                         else:
                             if "old" in dataset.name and "U" in itm.name:
                                 df.loc[str(itm.name), "Nurse1_case_diagnosis"]["oldform"] = itm.label
                                 df.loc[str(itm.name), "Nurse1_bounding_boxes"]["oldform"] = bounding_boxes
                                 df.loc[str(itm.name), "Nurse1"]["oldform"] = usr.username
                                 df.loc[str(itm.name), "Nurse1_Label_2"]["oldform"] = label_2
+                                df.loc[str(itm.name), "Nurse1_images"]["oldform"] = image_names
                             elif "new" in dataset.name and "U" in itm.name:
                                 df.loc[str(itm.name), "Nurse1_case_diagnosis"]["newform"] = itm.label
                                 df.loc[str(itm.name), "Nurse1_bounding_boxes"]["newform"] = bounding_boxes
                                 df.loc[str(itm.name), "Nurse1"]["newform"] = usr.username
                                 df.loc[str(itm.name), "Nurse1_Label_2"]["newform"] = label_2
+                                df.loc[str(itm.name), "Nurse1_images"]["newform"] = image_names
                             else:
                                 df.loc[str(itm.name), "Nurse1_case_diagnosis"] = itm.label
                                 df.loc[str(itm.name), "Nurse1_bounding_boxes"] = bounding_boxes
                                 df.loc[str(itm.name), "Nurse1"] = usr.username
                                 df.loc[str(itm.name), "Nurse1_Label_2"] = label_2
+                                df.loc[str(itm.name), "Nurse1_images"] = image_names
                     else:
                         if "old" in dataset.name and "U" in itm.name:
                             df.loc[str(itm.name), "Nurse2_case_diagnosis"]["oldform"] = itm.label
                             df.loc[str(itm.name), "Nurse2_bounding_boxes"]["oldform"] = bounding_boxes
                             df.loc[str(itm.name), "Nurse2"]["oldform"] = usr.username
                             df.loc[str(itm.name), "Nurse2_Label_2"]["oldform"] = label_2
+                            df.loc[str(itm.name), "Nurse2_images"]["oldform"] = image_names
                         elif "new" in dataset.name and "U" in itm.name:
                             df.loc[str(itm.name), "Nurse2_case_diagnosis"]["newform"] = itm.label
                             df.loc[str(itm.name), "Nurse2_bounding_boxes"]["newform"] = bounding_boxes
                             df.loc[str(itm.name), "Nurse2"]["newform"] = usr.username
                             df.loc[str(itm.name), "Nurse2_Label_2"]["newform"] = label_2
+                            df.loc[str(itm.name), "Nurse2_images"]["newform"] = image_names
                         else:
                             df.loc[str(itm.name), "Nurse2_case_diagnosis"] = itm.label
                             df.loc[str(itm.name), "Nurse2_bounding_boxes"] = bounding_boxes
                             df.loc[str(itm.name), "Nurse2"] = usr.username
                             df.loc[str(itm.name), "Nurse2_Label_2"] = label_2
+                            df.loc[str(itm.name), "Nurse2_images"] = image_names
 
         df.replace({}, "", regex=True)
+        print(df)
         # add filename
         headers = Headers()
         headers.set('Content-Disposition', 'attachment', filename=f"ordered_by_case.csv")
