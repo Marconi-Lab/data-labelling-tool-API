@@ -89,57 +89,56 @@ def predict_image(image, positive_thres):
     returns prediction response as a dictionary. To get predictions, use result['predictions'][i]['tagName'] and result['predictions'][i]['probability']
     """
     log_msg("Predicting image")
-    try:
-        if image.mode != "RGB":
-            log_msg("Converting to RGB")
-            image = image.convert("RGB")
+    # try:
+    if image.mode != "RGB":
+        log_msg("Converting to RGB")
+        image = image.convert("RGB")
 
-        w, h = image.size
-        log_msg("Image size: " + str(w) + "x" + str(h))
+    w, h = image.size
+    log_msg("Image size: " + str(w) + "x" + str(h))
 
-        # Update orientation based on EXIF tags
-        image = update_orientation(image)
-        metadata = mscviplib.GetImageMetadata(image)
-        cropped_image = mscviplib.PreprocessForInferenceAsTensor(
-            metadata,
-            image.tobytes(),
-            mscviplib.ResizeAndCropMethod.CropCenter,
-            (network_input_size, network_input_size),
-            mscviplib.InterpolationType.Bilinear,
-            mscviplib.ColorSpace.RGB,
-            (),
-            (),
-        )
-        cropped_image = np.moveaxis(cropped_image, 0, -1)
+    # Update orientation based on EXIF tags
+    image = update_orientation(image)
+    metadata = mscviplib.GetImageMetadata(image)
+    cropped_image = mscviplib.PreprocessForInferenceAsTensor(
+        metadata,
+        image.tobytes(),
+        mscviplib.ResizeAndCropMethod.CropCenter,
+        (network_input_size, network_input_size),
+        mscviplib.InterpolationType.Bilinear,
+        mscviplib.ColorSpace.RGB,
+        (),
+        (),
+    )
+    cropped_image = np.moveaxis(cropped_image, 0, -1)
 
-        tf.compat.v1.reset_default_graph()
-        tf.import_graph_def(graph_def, name="")
+    tf.compat.v1.reset_default_graph()
+    tf.import_graph_def(graph_def, name="")
 
-        with tf.compat.v1.Session() as sess:
-            prob_tensor = sess.graph.get_tensor_by_name(output_layer)
-            (predictions,) = sess.run(prob_tensor, {input_node: [cropped_image]})
+    with tf.compat.v1.Session() as sess:
+        prob_tensor = sess.graph.get_tensor_by_name(output_layer)
+        (predictions,) = sess.run(prob_tensor, {input_node: [cropped_image]})
 
-            result = []
-            for p, label in zip(predictions, labels):
-                truncated_probablity = np.float64(round(p, 8))
-                if truncated_probablity > 1e-8:
-                    result.append(
-                        {
-                            "tagName": label,
-                            "probability": truncated_probablity
-                        }
-                    )
-            if result[0]["probability"] > result[1]["probability"]:
-                # predicted_dict = result[0]
+        result = []
+        for p, label in zip(predictions, labels):
+            truncated_probablity = np.float64(round(p, 8))
+            if truncated_probablity > 1e-8:
+                result.append(
+                    {
+                        "tagName": label,
+                        "probability": truncated_probablity
+                    }
+                )
+        log_msg(f"Resulting arrary: {str(result)}")
+        if len(result) == 1:
+            if "Negative" in result[0]["tagName"]:
                 predicted_name = "Negative"
+                neg_prob = round(result[0]["probability"], 4)
+                pos_prob = 1 - neg_prob
             else:
-                # predicted_dict = result[1]
-                #
-                # if positive_thres > result[1]["probability"]:
-                #     predicted_name = "Negative"
-                # else:
                 predicted_name = "Positive"
-
+                pos_prob = round(result[0]["probability"], 4)
+                neg_prob = 1 - pos_prob
 
             response = {
                 "id": "",
@@ -148,18 +147,45 @@ def predict_image(image, positive_thres):
                 "created": datetime.utcnow().isoformat(),
                 "predictions": {
                     "class": predicted_name,
-                    "negative_confidence": round(result[0]["probability"], 4),
-                    "positive_confidence": round(result[1]["probability"], 4)
+                    "negative_confidence": neg_prob,
+                    "positive_confidence": pos_prob
                 },
             }
-
             log_msg("Results: " + str(response))
             return response
 
-    except Exception as e:
-        print("Error :", e)
-        log_msg("Exception: " +str(e))
-        return "Error: Could not preprocess image for prediction. " + str(e)
+           
+        if result[0]["probability"] > result[1]["probability"]:
+            # predicted_dict = result[0]
+            predicted_name = "Negative"
+        else:
+            # predicted_dict = result[1]
+            #
+            # if positive_thres > result[1]["probability"]:
+            #     predicted_name = "Negative"
+            # else:
+            predicted_name = "Positive"
+
+
+        response = {
+            "id": "",
+            "project": "",
+            "iteration": "",
+            "created": datetime.utcnow().isoformat(),
+            "predictions": {
+                "class": predicted_name,
+                "negative_confidence": round(result[0]["probability"], 4),
+                "positive_confidence": round(result[1]["probability"], 4)
+            },
+        }
+
+        log_msg("Results: " + str(response))
+        return response
+
+    # except Exception as e:
+        # print("Error :", e)
+        # log_msg("Exception: " +str(e))
+        # return "Error: Could not preprocess image for prediction. " + str(e)
 
 
 def predict_url(imageUrl, pos_thres):
