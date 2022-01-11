@@ -59,7 +59,7 @@ class Attributes(db.Model):
 
     def __repr__(self):
         return "<Atrribute: {}>".format(self.name)
-        
+
 
 class Dataset(db.Model):
     """This class represents the datasets table"""
@@ -68,15 +68,16 @@ class Dataset(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
+    project_id = db.Column(db.Integer, db.ForeignKey(Project.id, ondelete="CASCADE"), default=0)
     classes = db.Column(db.ARRAY(db.String))
     classes2 = db.Column(db.ARRAY(db.String))
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
 
-    def __init__(self, name, classes):
+    def __init__(self, name, project_id):
         """initialize with name."""
         self.name = name
-        self.classes = classes
+        self.project_id = project_id
 
     def save(self):
         db.session.add(self)
@@ -309,3 +310,25 @@ class BlackListToken(db.Model):
             return True
         else:
             return False
+
+class Annotation(db.Model):
+    """Represents the annotatons' table"""
+    id  = db.Column(db.Integer, primary_key=True)
+    annotations = db.Column(db.String(1000))
+    project_id = db.Column(db.Integer, db.ForeignKey(Project.id, ondelete="CASCADE"))
+    dataset_id = db.Column(db.Integer, db.ForeignKey(Dataset.id, ondelete="CASCADE"))
+    image_id = db.Column(db.Integer, db.ForeignKey(Image.id, ondelete="CASCADE"))
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id, ondelete="CASCADE"))
+
+    def __init__(self, annotations, project_id, dataset_id, image_id, user_id):
+        self.annotations = annotations
+        self.project_id = project_id
+        self.dataset_id = dataset_id
+        self.image_id = image_id
+        self.user_id = user_id
+
+    def save(self):
+        """saves annotation record"""
+        db.session.add(self)
+        db.session.commit()
+        
