@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, abort
 
 from application.decorators import user_is_authenticated
-from application.models import Image, Item, User, Assignment, Dataset
+from application.models import Image, Item, User, Assignment, Dataset, Project
 
 user_blueprint = Blueprint('user', __name__)
 
@@ -35,6 +35,7 @@ def get_user_datasets(user_id, *kwargs):
     datasets = []
     for assignment in assignments:
         dataset = Dataset.query.filter_by(id=assignment.dataset_id).first()
+        project_type = Project.query.filter_by(id=dataset.project_id).first().type
 
         labelled_images = Image.query.filter_by(dataset_id=assignment.dataset_id, labelled=True, has_box=True,
                                                 folder_labelled=True).count()
@@ -48,7 +49,8 @@ def get_user_datasets(user_id, *kwargs):
             "id": dataset.id,
             "name": dataset.name,
             "classes": dataset.classes,
-            "progress": progress
+            "progress": progress,
+            "project_type": project_type
         }
         datasets.append(dataset)
     response = jsonify({
