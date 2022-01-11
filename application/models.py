@@ -5,6 +5,34 @@ import jwt
 from flask import current_app
 from datetime import datetime, timedelta
 
+class Project(db.Model):
+    """Represents projects' table"""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255))
+    type = db.Column(db.String(255)) #options specified in frontend
+
+    def __init__(self, name, type):
+        self.name = name
+        self.type = type #(label or annotate)
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    @staticmethod
+    def get_all():
+        return Project.query.order_by(Project.name).all()
+
+    @staticmethod
+    def count_all():
+        return Project.query.count()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def __repr__(self):
+        return "<Project: {}>".format(self.name)
 
 class Dataset(db.Model):
     """This class represents the datasets table"""
