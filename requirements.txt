@@ -48,10 +48,8 @@ pandas==1.1.5
 passlib==1.7.4
 pathspec==0.8.1
 pilkit==2.0
-Pillow
-pillowcase==2.0.0
 psutil==5.8.0
-psycopg2==2.8.6
+psycopg2==2.7.5
 pycparser==2.20
 PyJWT==2.0.1
 python-dateutil==2.8.1
@@ -76,3 +74,4 @@ Werkzeug==0.16.0
 WTForms==2.3.3
 tensorflow~=2.0.2
 mscviplib==2.200731.16
+
