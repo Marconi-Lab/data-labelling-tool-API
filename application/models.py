@@ -108,6 +108,15 @@ class User(db.Model):
     email = db.Column(db.String(255), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
     username = db.Column(db.String(100), nullable=False)
+    firstname = db.Column(db.String(100), nullable=False, default="firstname")
+    lastname = db.Column(db.String(100), nullable=False, default="lastname")
+    age = db.Column(db.integer, default=0)
+    gender = db.Column(db.String(20), default="Male")
+    country = db.Column(db.String(100), default="Uganda")
+    city = db.Column(db.String(100), default="Kampala")
+    street = db.Column(db.String(100), default="Jinja road")
+    description = db.Column(db.String(500), default="description")
+    experience = db.Column(db.Integer, default="0")
     is_admin = db.Column(db.String)
     site = db.Column(db.String, default="Not specified")
 
@@ -331,4 +340,3 @@ class Annotation(db.Model):
         """saves annotation record"""
         db.session.add(self)
         db.session.commit()
-        
