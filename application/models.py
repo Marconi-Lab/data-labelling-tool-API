@@ -34,6 +34,33 @@ class Project(db.Model):
     def __repr__(self):
         return "<Project: {}>".format(self.name)
 
+class Attributes(db.Model):
+    """Represents the attributes' table"""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50))
+    description = db.Column(db.String(255))
+    type = db.Column(db.String(50)) # to be specified at the frontend
+    project_id = db.Column(db.Integer, db.ForeignKey(Project.id, ondelete="CASCADE"))
+    values = db.Column(db.String(255)) # comma separated values string
+
+    def __init__(self, name, project_id, values, type):
+        self.name = name
+        self.project_id = project_id
+        self.values = values
+        self .type = type
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def __repr__(self):
+        return "<Atrribute: {}>".format(self.name)
+        
+
 class Dataset(db.Model):
     """This class represents the datasets table"""
 
