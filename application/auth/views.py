@@ -24,6 +24,16 @@ class RegistrationView(MethodView):
                 username = post_data['username']
                 is_admin = post_data['is_admin']
                 user = User(email=email, password=password, username=username, is_admin=is_admin)
+                user.firstname = post_data['firstname']
+                user.lastname = post_data['lastname']
+                user.age = post_data['age']
+                user.gender = post_data['gender']
+                user.country = post_data['country']
+                user.city = post_data['city']
+                user.street = post_data['street']
+                user.description = post_data['description']
+                user.experience = post_data['experience']
+                
                 if "site" in post_data:
                     user.site = post_data["site"]
                 user.save()
