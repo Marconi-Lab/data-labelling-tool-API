@@ -15,13 +15,42 @@ from werkzeug.wrappers import Response
 
 import application as app
 from application.decorators import permission_required
-from application.models import Image, Item, User, Assignment, Dataset
+from application.models import Image, Item, User, Assignment, Dataset, Project
 
 load_dotenv()
 
 admin_blueprint = Blueprint('admin', __name__)
 
 
+@admin_blueprint.route('/admin/projects', methods=["POST", "GET"])
+@permission_required()
+def projects():
+    if request.method == "POST":
+        name = str(request.data.get("name", ''))
+        type = str(request.data.get("type", ''))
+
+        if name and type:
+            project= Project(name=name,type=type)
+            project.save()
+            response = jsonify({
+                "id": project.id,
+                "name": project.name,
+                "type": project.type
+            })
+            response.status_code = 201
+            return response
+    else:
+        projects = Project.get_all()
+
+        response = jsonify([ {
+            "id":  project.id,
+            "name": project.name,
+            "type": project.type
+        } for project in projects])
+        response.status_code = 200
+        return response
+
+        
 @admin_blueprint.route('/admin/datasets/', methods=["POST", "GET"])
 @permission_required()
 def datasets():
