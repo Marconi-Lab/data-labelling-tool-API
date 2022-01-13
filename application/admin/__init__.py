@@ -71,6 +71,15 @@ def project_attributes(id):
         })
         response.status_code = 201
         return response
+    else:
+        attributes = Attributes.query.filter_by(project_id=id).all()
+        attributes_array = list(map(lambda x: {"name": x.name, "type": x.type, "values": x.values}, attributes))
+        response = jsonify({
+            "project_id": id,
+            "project_attribues": attributes_array
+        })
+        response.status_code = 200
+        return response
 
 @admin_blueprint.route('/admin/datasets/', methods=["POST", "GET"])
 @permission_required()
