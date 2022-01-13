@@ -110,7 +110,7 @@ class User(db.Model):
     username = db.Column(db.String(100), nullable=False)
     firstname = db.Column(db.String(100), nullable=False, default="firstname")
     lastname = db.Column(db.String(100), nullable=False, default="lastname")
-    age = db.Column(db.integer, default=0)
+    age = db.Column(db.Integer, default=0)
     gender = db.Column(db.String(20), default="Male")
     country = db.Column(db.String(100), default="Uganda")
     city = db.Column(db.String(100), default="Kampala")
