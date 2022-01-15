@@ -42,6 +42,10 @@ def get_user_datasets(user_id, *kwargs):
                                                 folder_labelled=True).count()
         all_images = Image.query.filter_by(dataset_id=assignment.dataset_id).count()
 
+        if project_type == "label":
+            all_images = Image.query.filter_by(dataset_id=assignment.dataset_id).count()
+            labelled_images = Annotation.query.filter_by(user_id=user_id).count()
+
         if labelled_images and all_images:
             progress = (labelled_images / all_images) * 100
         else:
@@ -227,13 +231,15 @@ def add_bounding_box(image_id):
     return response
 
 # get random unlabelled image
-@user_blueprint.route("/user/images/label", methods=["GET"])
+@user_blueprint.route("/user/images/<int:dataset_id>/random", methods=["GET"])
 @user_is_authenticated()
-def get_random_unlabelled_image(user_id, dataset_id):
+def get_random_unlabelled_image(dataset_id):
+    user_id = request.headers.get("user_id")
     # all images in dataset
     all_images = Image.query.filter_by(dataset_id=dataset_id).all()
     # this user's annotation record
     labelled_images = Annotation.query.filter_by(user_id=user_id).all()
+    progress = f"{len(labelled_images)} labeled out of {len(all_images)}"
     # labelled image ids array
     labelled_image_ids = [i.image_id for i in labelled_images]
     unlabelled_images = list()
@@ -248,8 +254,31 @@ def get_random_unlabelled_image(user_id, dataset_id):
     response = jsonify({
             "id": image.id,
             "image": image.image_URL,
+            "progress": progress,
             "dataset_id": image.dataset_id,
             "project_id": project_id
         })
     response.status_code = 200
+    return response
+
+@user_blueprint.route("/user/label/<int:image_id>", methods=["POST"])
+@user_is_authenticated()
+def label_image(image_id):
+    post_data = request.data
+    dataset_id = int(request.data.get("dataset_id"))
+    project_id = int(request.data.get("project_id"))
+    annotations = request.data.get("annotations", "")
+    user_id = request.headers.get("user_id")
+    image_id = image_id
+
+    annotation = Annotation(dataset_id=dataset_id, project_id=project_id, user_id=user_id, image_id=image_id, annotations=annotations)
+    annotation.save()
+    response = jsonify({
+        "dataset_id": annotation.dataset_id,
+        "project_id": annotation.project_id,
+        "user_id": annotation.user_id,
+        "image_id": annotation.image_id,
+        "annotations": annotation.annotations
+    })
+    response.status_code = 201
     return response
