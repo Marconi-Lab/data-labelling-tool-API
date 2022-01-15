@@ -86,14 +86,17 @@ def project_attributes(id):
 def datasets():
     if request.method == "POST":
         name = str(request.data.get("name", ''))
-        classes = list(request.data.get("classes"))
+        if "classes" in request.data:
+            classes = list(request.data.get("classes"))
+        project_id = request.data.get("project_id", "")
 
-        if name and classes:
-            dataset = Dataset(name=name, classes=classes)
+        if name:
+            dataset = Dataset(name=name, project_id=project_id)
             dataset.save()
             response = jsonify({
                 "id": dataset.id,
                 "name": dataset.name,
+                "project_id": dataset.project_id,
                 "classes": dataset.classes,
                 "progress": 0,
                 "date_created": dataset.date_created,
@@ -121,6 +124,7 @@ def datasets():
             obj = {
                 "id": dataset.id,
                 "name": dataset.name,
+                "project_id": dataset.project_id,
                 "classes": dataset.classes,
                 "classes2": dataset.classes2,
                 "progress": progress,
@@ -156,6 +160,7 @@ def dataset_manipulation(id, **kwargs):
             "id": dataset.id,
             "name": dataset.name,
             "classes": dataset.classes,
+            "project_id": dataset.project_id,
             "date_created": dataset.date_created,
             "date_modified": dataset.date_modified
         })
@@ -171,10 +176,11 @@ def dataset_manipulation(id, **kwargs):
             progress = ((labelled_items + labelled_images) / (all_images + all_items)) * 100
         else:
             progress = 0
-
+        
         response = jsonify({
             "id": dataset.id,
             "name": dataset.name,
+            "project_id": dataset.project_id,
             "classes": dataset.classes,
             "classes2": dataset.classes2,
             "progress": progress,
@@ -748,6 +754,35 @@ def dataset_bulk_upload(dataset_id):
     return response
 
 
+@admin_blueprint.route("/admin/datasets/image/", methods=["POST"])
+def dataset_image_upload_2():
+    try:
+        image = request.files["image"]
+        dataset_id = str(request.data.get("dataset_id", ""))
+
+        if image and allowed_file(image.content_type):
+            image_name = secure_filename(image.filename)
+            image.save(os.path.join(uploads_dir, image_name))
+            image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=image_name, _external=True)
+            image_upload = Image(name=image_name, image_URL=image_url)
+            image_upload.dataset_id = dataset_id
+            image_upload.save()
+        response = jsonify({
+            "message": "Image was successfully added",
+            "dataset_id": dataset_id,
+            "image": image_url,
+            "id": image_upload.id
+        })
+        response.status_code = 201
+        return response
+    except Exception as e:
+        response = jsonify({
+            "message": str(e)
+        })
+        response.status_code = 500
+        print("Message: ", e)
+        return response
+
 @admin_blueprint.route("/admin/datasets/images/", methods=["POST"])
 def dataset_image_upload():
     try:
@@ -790,7 +825,6 @@ def dataset_image_upload():
         response.status_code = 500
         print("Message: ", e)
         return response
-
 
 @admin_blueprint.route("/admin/images/<int:image_id>/", methods=["DELETE"])
 def delete_image(image_id):
