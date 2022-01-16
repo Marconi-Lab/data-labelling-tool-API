@@ -1,9 +1,10 @@
 from . import auth_blueprint
 
 from flask.views import MethodView
-from flask import make_response, request, jsonify
+from flask import make_response, request, jsonify, url_for, render_template_string
 from application.models import User, BlackListToken
-
+from application.utils.token import generate_verification_token, confirm_verification_token
+from application.utils.email import send_email
 
 class RegistrationView(MethodView):
     """This class registers a new user."""
@@ -33,7 +34,21 @@ class RegistrationView(MethodView):
                 user.street = post_data['street']
                 user.description = post_data['description']
                 user.experience = post_data['experience']
+                user.is_verified = False
                 
+                # email verification token
+                print("Generating token...")
+                token = generate_verification_token(email)
+                print(f"Token: {token}")
+                print("Creating verification...")
+                verification_email = url_for('auth.verify_email', token=token, _external=True)
+                html = render_template_string(
+                    "<h2>Marconi ML annotator email verification</h2><p>Thanks for signing up! Please follow\
+                        this link to activate your account: </p><p><a href='{{ verification_email }}'>\
+                        {{ verification_email }}</a></p> <br> <p>Thanks!</p>", verification_email=verification_email
+                )
+                subject  =  "Marconi ML annotator email verification"
+                send_email(email, subject, html)
                 if "site" in post_data:
                     user.site = post_data["site"]
                 user.save()
@@ -45,6 +60,7 @@ class RegistrationView(MethodView):
                 return make_response(jsonify(response)), 201
             except Exception as e:
                 # An error occured, therefore return a string message containing the error
+                print(e)
                 response = {
                     'message': str(e)
                 }
