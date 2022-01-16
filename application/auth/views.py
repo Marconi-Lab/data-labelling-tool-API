@@ -23,7 +23,7 @@ class RegistrationView(MethodView):
                 email = post_data['email']
                 password = post_data['password']
                 is_admin = post_data['is_admin']
-                user = User(email=email, password=password, username=username, is_admin=is_admin)
+                user = User(email=email, password=password, is_admin=is_admin)
                 user.firstname = post_data['firstname']
                 user.lastname = post_data['lastname']
                 user.age = post_data['age']
@@ -68,9 +68,9 @@ class RegistrationView(MethodView):
                 # An error occured, therefore return a string message containing the error
                 print(e)
                 response = {
-                    'message': str(e)
+                    'message': "Internal server error"
                 }
-                return make_response(jsonify(response)), 401
+                return make_response(jsonify(response)), 500
         else:
             # There is an existing user. We don't want to register users twice
             # Return a message to the user telling them that they they already exist

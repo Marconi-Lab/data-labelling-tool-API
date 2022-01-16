@@ -108,7 +108,7 @@ class User(db.Model):
     email = db.Column(db.String(255), nullable=False, unique=True)
     is_verified = db.Column(db.Boolean, default=False)
     password = db.Column(db.String(255), nullable=False)
-    username = db.Column(db.String(100), nullable=False)
+    username = db.Column(db.String(100), nullable=True)
     firstname = db.Column(db.String(100), default="firstname")
     lastname = db.Column(db.String(100), default="lastname")
     age = db.Column(db.Integer, default=0)
@@ -122,11 +122,10 @@ class User(db.Model):
     project_id = db.Column(db.Integer, db.ForeignKey(Project.id), default=1)
     site = db.Column(db.String, default="Not specified")
 
-    def __init__(self, email, password, username, is_admin):
+    def __init__(self, email, password, is_admin):
         """Initialize the user with an email, username and a password"""
         self.email = email
         self.password = Bcrypt().generate_password_hash(password).decode()
-        self.username = username
         self.is_admin = is_admin
 
     def password_is_valid(self, password):
