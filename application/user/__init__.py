@@ -44,7 +44,7 @@ def get_user_datasets(user_id, *kwargs):
 
         if project_type == "label":
             all_images = Image.query.filter_by(dataset_id=assignment.dataset_id).count()
-            labelled_images = Annotation.query.filter_by(user_id=user_id, datast_id=assignment.dataset_id).count()
+            labelled_images = Annotation.query.filter_by(user_id=user_id, dataset_id=assignment.dataset_id).count()
 
         if labelled_images and all_images:
             progress = (labelled_images / all_images) * 100
