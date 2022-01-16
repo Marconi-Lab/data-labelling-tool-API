@@ -4,6 +4,8 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from instance.config import app_config
 import flask_monitoringdashboard as dashboard
+from .utils.email import mail
+
 import os
 load_dotenv()
 
@@ -26,6 +28,8 @@ def create_app(config_name):
         from .external.predict import initialize
         initialize()
         db.init_app(app)
+        mail.init_app(app)
+        
         from .auth import auth_blueprint
         app.register_blueprint(auth_blueprint, url_prefix="/api/v1")
 
