@@ -7,8 +7,8 @@ def generate_verification_token(email):
     serializer = URLSafeTimedSerializer(os.getenv("SECRET"))
     return serializer.dumps(email, salt=os.getenv("SECURITY_PASSWORD_SALT"))
 
-def confirm_verification_token(token, expiration=3600):
-    serializer = URLSafeTimedSerializer(os.getenv("SECRET_KEY"))
+def confirm_verification_token(token, expiration=36000000):
+    serializer = URLSafeTimedSerializer(os.getenv("SECRET"))
     try:
         email = serializer.loads(
             token,
