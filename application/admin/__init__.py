@@ -89,10 +89,17 @@ def datasets():
         if "classes" in request.data:
             classes = list(request.data.get("classes"))
         project_id = request.data.get("project_id", "")
+        users = User.query.filter_by(project_id=project_id).all()
+        
 
         if name:
             dataset = Dataset(name=name, project_id=project_id)
             dataset.save()
+
+            for user in users:
+                assignment = Assignment(user_id=user.id, dataset_id=dataset.id)
+                assignment.save()
+
             response = jsonify({
                 "id": dataset.id,
                 "name": dataset.name,

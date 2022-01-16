@@ -214,7 +214,6 @@ def add_bounding_box(image_id):
     cervical_area = request.data.get("bounding_box", "")
     image = Image.query.filter_by(id=image_id).first()
     image.cervical_area = cervical_area
-    print("cervic", cervical_area)
     if cervical_area:
         image.has_box = True
     else:
