@@ -2,7 +2,7 @@ from . import auth_blueprint
 
 from flask.views import MethodView
 from flask import make_response, request, jsonify, url_for, render_template_string
-from application.models import User, BlackListToken
+from application.models import Assignment, User, BlackListToken, Dataset
 from application.utils.token import generate_verification_token, confirm_verification_token
 from application.utils.email import send_email
 
@@ -22,7 +22,6 @@ class RegistrationView(MethodView):
                 # Register the user
                 email = post_data['email']
                 password = post_data['password']
-                username = post_data['username']
                 is_admin = post_data['is_admin']
                 user = User(email=email, password=password, username=username, is_admin=is_admin)
                 user.firstname = post_data['firstname']
@@ -35,6 +34,7 @@ class RegistrationView(MethodView):
                 user.description = post_data['description']
                 user.experience = post_data['experience']
                 user.is_verified = False
+                user.project_id = post_data['project_id']
                 
                 # email verification token
                 print("Generating token...")
@@ -52,6 +52,12 @@ class RegistrationView(MethodView):
                 if "site" in post_data:
                     user.site = post_data["site"]
                 user.save()
+
+                datasets = list(Dataset.query.filter_by(project_id=int(post_data['project_id'])).all())
+                print(f"datasets {datasets}")
+                for dataset in datasets:
+                    assignment = Assignment(user_id=int(user.id), dataset_id=int(dataset.id))
+                    assignment.save()
 
                 response = {
                     'message': 'You registered successfully.'
@@ -95,7 +101,8 @@ class LoginView(MethodView):
                         'is_admin': user.is_admin,
                         'is_verified': user.is_verified,
                         'id': user.id,
-                        'username': user.username,
+                        'firstname': user.firstname,
+                        'lastname':user.lastname,
                         'email': user.email
                     }
                     return make_response(jsonify(response)), 200
