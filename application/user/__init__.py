@@ -44,7 +44,7 @@ def get_user_datasets(user_id, *kwargs):
 
         if project_type == "label":
             all_images = Image.query.filter_by(dataset_id=assignment.dataset_id).count()
-            labelled_images = Annotation.query.filter_by(user_id=user_id).count()
+            labelled_images = Annotation.query.filter_by(user_id=user_id, datast_id=assignment.dataset_id).count()
 
         if labelled_images and all_images:
             progress = (labelled_images / all_images) * 100
@@ -238,8 +238,11 @@ def get_random_unlabelled_image(dataset_id):
     # all images in dataset
     all_images = Image.query.filter_by(dataset_id=dataset_id).all()
     # this user's annotation record
-    labelled_images = Annotation.query.filter_by(user_id=user_id).all()
+    labelled_images = Annotation.query.filter_by(user_id=user_id, dataset_id=dataset_id).all()
+
     progress = f"{len(labelled_images)} labeled out of {len(all_images)}"
+    if len(labelled_images) >= len(all_images):
+        progress = "done"
     # labelled image ids array
     labelled_image_ids = [i.image_id for i in labelled_images]
     unlabelled_images = list()
