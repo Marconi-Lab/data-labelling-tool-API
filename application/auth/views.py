@@ -93,6 +93,7 @@ class LoginView(MethodView):
                         'message': 'You logged in successfully.',
                         'access_token': access_token,
                         'is_admin': user.is_admin,
+                        'is_verified': user.is_verified,
                         'id': user.id,
                         'username': user.username,
                         'email': user.email
