@@ -655,13 +655,14 @@ def delete_assignment(user_id, dataset_id):
 @admin_blueprint.route("/admin/users/<int:user_id>/project/<int:project_id>", methods=["DELETE", "PUT"])
 @permission_required()
 def manipulate_project_users(user_id, project_id):
+    user = User.query.filter_by(id=user_id).first()
+    project = Project.query.filter_by(id=project_id).first()
+    datasets = Dataset.query.filter_by(project_id=project_id).all()
     if request.method == "PUT":
-        project = Project.query.filter_by(id=project_id).first()
         #add user to project
-        user = User.query.filter_by(id=user_id).first()
         user.project_id = project_id
+        user.save()
         # assign user the corresponding datasets
-        datasets = Dataset.query.filter_by(project_id=project_id).all()
         for dataset in datasets:
             assignment = Assignment(dataset_id=dataset.id, user_id=user_id)
             assignment.save()
@@ -672,6 +673,21 @@ def manipulate_project_users(user_id, project_id):
             "message": f"User successfully added to project {project.name}" 
         })
         response.status_code = 201
+        return response
+    else:
+        # method = DELETE
+        user.project_id = None
+        user.save()
+        for dataset in datasets:
+            assignment = Assignment(dataset_id=dataset.id, user_id=user_id)
+            assignment.delete()
+
+        response = jsonify(
+            {
+                "message": f"User removed from project {project.name}"
+            }
+        )
+        response.status_code = 200
         return response
 
 @admin_blueprint.route('/admin/<int:id>/home/', methods=["GET"])
