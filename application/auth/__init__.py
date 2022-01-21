@@ -1,7 +1,8 @@
-from flask import Blueprint, jsonify, redirect
+from flask import Blueprint, jsonify, redirect, render_template_string
+import os
 
 from application.utils.token import confirm_verification_token
-
+from application.utils.email import send_email
 from application.models import User
 
 import os
@@ -26,8 +27,15 @@ def verify_email(token):
         else:
             user.is_verified = True
             user.save()
-            
+            # send email to admin
+            html = render_template_string("<h2>New Project Signup</h2> <p>A new user, {{ email}} has registered for the project.</p>\
+                <p>Please login to the <a href='https://marconimlannotator.com/administrator'>system</a>\
+                     to add them to the project annotator's list.</p>", email=email)
+            subject  =  "New SignUp PRESCRIP PROJECT macronimlannotator"
+            reciever = os.getenv("PROJECT_ADMIN")
+            send_email(reciever, subject, html)
             return redirect(os.getenv("FRONT_END_LOGIN"), code=302)
+
     except Exception as e:
         print(e)
         return e
