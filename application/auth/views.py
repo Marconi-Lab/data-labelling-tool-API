@@ -103,7 +103,8 @@ class LoginView(MethodView):
                         'id': user.id,
                         'firstname': user.firstname,
                         'lastname':user.lastname,
-                        'email': user.email
+                        'email': user.email,
+                        'project_admin': user.project_admin
                     }
                     return make_response(jsonify(response)), 200
             else:
