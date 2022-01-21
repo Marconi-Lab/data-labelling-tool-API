@@ -15,7 +15,7 @@ from werkzeug.wrappers import Response
 
 import application as app
 from application.decorators import permission_required
-from application.models import Image, Item, User, Assignment, Dataset, Project, Attributes
+from application.models import Image, Item, User, Assignment, Dataset, Project, Attributes, Annotation
 
 load_dotenv()
 
@@ -676,11 +676,15 @@ def manipulate_project_users(user_id, project_id):
         return response
     else:
         # method = DELETE
+        annotations = Annotation.query.filter_by(project_id=project_id, user_id=user_id).all()
         user.project_id = None
         user.save()
+        for annotation in annotations:
+            annotation.delete()
         for dataset in datasets:
-            assignment = Assignment(dataset_id=dataset.id, user_id=user_id)
-            assignment.delete()
+            assignments = Assignment.query.filter_by(dataset_id=dataset.id, user_id=user_id).all()
+            for assignment in assignments:
+                assignment.delete()
 
         response = jsonify(
             {

@@ -341,3 +341,8 @@ class Annotation(db.Model):
         """saves annotation record"""
         db.session.add(self)
         db.session.commit()
+
+    def delete(self):
+        """Deletes an assigment record"""
+        db.session.delete(self)
+        db.session.commit()
