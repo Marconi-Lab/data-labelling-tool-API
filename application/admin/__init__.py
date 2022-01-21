@@ -426,7 +426,6 @@ def ordered_by_case_dataset():
             stream_with_context(df.to_csv(chunksize=100)), mimetype="text/csv", headers=headers
         )
     except Exception as e:
-        raise e
         response = jsonify({"message": str(e)})
         print(response)
         return response
@@ -545,8 +544,11 @@ def user():
             datasets.append(dataset)
         obj = {
             "id": user.id,
-            "username": user.username,
+            "username": user.firstname + " " + user.lastname,
             "site": site,
+            "country": user.country,
+            "gender": user.gender,
+            "project_id": user.project_id,
             "email": user.email,
             "dataset_count": dataset_count,
             "datasets": datasets,
@@ -622,8 +624,13 @@ def user_assignments_manipulation(user_id, **kwargs):
 @permission_required()
 def add_user_site(id):
     user = User.query.filter_by(id=id).first()
-    site = request.data.get("site")
-    user.site = site
+    if "site" in request.data:
+        site = request.data.get("site")
+        user.site = site
+    if "project_id" in request.data:
+        project_id = request.data.get("project_id")
+        user.project_id = project_id
+        
     user.save()
     response = jsonify({
         "id": user.id,
@@ -645,6 +652,27 @@ def delete_assignment(user_id, dataset_id):
                "Message": "Assignment {} deleted successfully".format(id)
            }, 200
 
+@admin_blueprint.route("/admin/users/<int:user_id>/project/<int:project_id>", methods=["DELETE", "PUT"])
+@permission_required()
+def manipulate_project_users(user_id, project_id):
+    if request.method == "PUT":
+        project = Project.query.filter_by(id=project_id).first()
+        #add user to project
+        user = User.query.filter_by(id=user_id).first()
+        user.project_id = project_id
+        # assign user the corresponding datasets
+        datasets = Dataset.query.filter_by(project_id=project_id).all()
+        for dataset in datasets:
+            assignment = Assignment(dataset_id=dataset.id, user_id=user_id)
+            assignment.save()
+
+        response = jsonify({
+            "id": user_id,
+            "project_id": project_id,
+            "message": f"User successfully added to project {project.name}" 
+        })
+        response.status_code = 201
+        return response
 
 @admin_blueprint.route('/admin/<int:id>/home/', methods=["GET"])
 @permission_required()
