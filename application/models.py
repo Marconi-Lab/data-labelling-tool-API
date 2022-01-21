@@ -120,6 +120,7 @@ class User(db.Model):
     experience = db.Column(db.Integer, default="0")
     is_admin = db.Column(db.String)
     project_id = db.Column(db.Integer, db.ForeignKey(Project.id), default=1)
+    project_admin = db.Column(db.String, default="")
     site = db.Column(db.String, default="Not specified")
 
     def __init__(self, email, password, is_admin):
