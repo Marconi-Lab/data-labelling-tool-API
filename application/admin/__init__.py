@@ -709,6 +709,44 @@ def admin_stats(id, **kwargs):
     response.status_code = 200
     return response
 
+@admin_blueprint.route('/admin/project-dashboard/<int:project_id>', methods=["GET"])
+@permission_required()
+def manipulate_project_uses(project_id):
+    data_arr = list()
+    # get all project datasets
+    datasets = Dataset.query.filter_by(project_id=project_id).all()
+    for dataset in datasets:
+        # get all project users
+        users = User.query.filter_by(project_id=project_id).all()
+        user_arr = list()
+        for user in users:
+            user_id = user.id
+            username = " ".join([user.firstname, user.lastname])
+            country = user.country
+            street = user.street
+            city  = user.city
+            images_labelled = Annotation.query.filter_by(user_id = user_id, dataset_id=dataset.id).count()
+            all_images = Image.query.filter_by(dataset_id=dataset.id).count()
+            user_arr.append({
+                "user_id": user_id,
+                "name": username,
+                "country": country,
+                "street": street,
+                "city": city,
+                "images_labelled": images_labelled,
+                "images_total": all_images
+            })
+
+        data_arr.append({
+            "name": dataset.name,
+            "dataset_id": dataset.id,
+            "data": user_arr
+        })
+
+    response = jsonify(data_arr)
+    response.status_code = 200
+    return response 
+
 
 allowed_extensions = set(['image/jpeg', 'image/png', 'jpeg'])
 uploads_dir = os.path.join(os.path.dirname(app.__file__), os.environ.get("UPLOAD_FOLDER"))
