@@ -53,11 +53,11 @@ class RegistrationView(MethodView):
                     user.site = post_data["site"]
                 user.save()
 
-                datasets = list(Dataset.query.filter_by(project_id=int(post_data['project_id'])).all())
-                print(f"datasets {datasets}")
-                for dataset in datasets:
-                    assignment = Assignment(user_id=int(user.id), dataset_id=int(dataset.id))
-                    assignment.save()
+                # datasets = list(Dataset.query.filter_by(project_id=int(post_data['project_id'])).all())
+                # print(f"datasets {datasets}")
+                # for dataset in datasets:
+                #     assignment = Assignment(user_id=int(user.id), dataset_id=int(dataset.id))
+                #     assignment.save()
 
                 response = {
                     'message': 'You registered successfully.'
