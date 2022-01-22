@@ -34,7 +34,6 @@ class RegistrationView(MethodView):
                 user.description = post_data['description']
                 user.experience = post_data['experience']
                 user.is_verified = False
-                user.project_id = post_data['project_id']
                 
                 # email verification token
                 print("Generating token...")
