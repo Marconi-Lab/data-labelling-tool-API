@@ -15,7 +15,7 @@ from werkzeug.wrappers import Response
 
 import application as app
 from application.decorators import permission_required
-from application.models import Image, Item, User, Assignment, Dataset, Project, Attributes
+from application.models import Image, Item, User, Assignment, Dataset, Project, Attributes, Annotation
 
 load_dotenv()
 
@@ -426,7 +426,6 @@ def ordered_by_case_dataset():
             stream_with_context(df.to_csv(chunksize=100)), mimetype="text/csv", headers=headers
         )
     except Exception as e:
-        raise e
         response = jsonify({"message": str(e)})
         print(response)
         return response
@@ -545,8 +544,11 @@ def user():
             datasets.append(dataset)
         obj = {
             "id": user.id,
-            "username": user.username,
+            "username": user.firstname + " " + user.lastname,
             "site": site,
+            "country": user.country,
+            "gender": user.gender,
+            "project_id": user.project_id,
             "email": user.email,
             "dataset_count": dataset_count,
             "datasets": datasets,
@@ -622,8 +624,13 @@ def user_assignments_manipulation(user_id, **kwargs):
 @permission_required()
 def add_user_site(id):
     user = User.query.filter_by(id=id).first()
-    site = request.data.get("site")
-    user.site = site
+    if "site" in request.data:
+        site = request.data.get("site")
+        user.site = site
+    if "project_id" in request.data:
+        project_id = request.data.get("project_id")
+        user.project_id = project_id
+        
     user.save()
     response = jsonify({
         "id": user.id,
@@ -645,6 +652,47 @@ def delete_assignment(user_id, dataset_id):
                "Message": "Assignment {} deleted successfully".format(id)
            }, 200
 
+@admin_blueprint.route("/admin/users/<int:user_id>/project/<int:project_id>", methods=["DELETE", "PUT"])
+@permission_required()
+def manipulate_project_users(user_id, project_id):
+    user = User.query.filter_by(id=user_id).first()
+    project = Project.query.filter_by(id=project_id).first()
+    datasets = Dataset.query.filter_by(project_id=project_id).all()
+    if request.method == "PUT":
+        #add user to project
+        user.project_id = project_id
+        user.save()
+        # assign user the corresponding datasets
+        for dataset in datasets:
+            assignment = Assignment(dataset_id=dataset.id, user_id=user_id)
+            assignment.save()
+
+        response = jsonify({
+            "id": user_id,
+            "project_id": project_id,
+            "message": f"User successfully added to project {project.name}" 
+        })
+        response.status_code = 201
+        return response
+    else:
+        # method = DELETE
+        annotations = Annotation.query.filter_by(project_id=project_id, user_id=user_id).all()
+        user.project_id = None
+        user.save()
+        for annotation in annotations:
+            annotation.delete()
+        for dataset in datasets:
+            assignments = Assignment.query.filter_by(dataset_id=dataset.id, user_id=user_id).all()
+            for assignment in assignments:
+                assignment.delete()
+
+        response = jsonify(
+            {
+                "message": f"User removed from project {project.name}"
+            }
+        )
+        response.status_code = 200
+        return response
 
 @admin_blueprint.route('/admin/<int:id>/home/', methods=["GET"])
 @permission_required()
@@ -661,6 +709,85 @@ def admin_stats(id, **kwargs):
     response.status_code = 200
     return response
 
+@admin_blueprint.route('/admin/project-dashboard/<int:project_id>', methods=["GET"])
+@permission_required()
+def manipulate_project_uses(project_id):
+    data_arr = list()
+    # get all project datasets
+    datasets = Dataset.query.filter_by(project_id=project_id).all()
+    for dataset in datasets:
+        # get all project users
+        users = User.query.filter_by(project_id=project_id).all()
+        user_arr = list()
+        for user in users:
+            user_id = user.id
+            username = " ".join([user.firstname, user.lastname])
+            country = user.country
+            street = user.street
+            city  = user.city
+            images_labelled = Annotation.query.filter_by(user_id = user_id, dataset_id=dataset.id).count()
+            all_images = Image.query.filter_by(dataset_id=dataset.id).count()
+            user_arr.append({
+                "user_id": user_id,
+                "name": username,
+                "country": country,
+                "street": street,
+                "city": city,
+                "images_labelled": images_labelled,
+                "images_total": all_images
+            })
+
+        data_arr.append({
+            "name": dataset.name,
+            "dataset_id": dataset.id,
+            "data": user_arr
+        })
+
+    response = jsonify(data_arr)
+    response.status_code = 200
+    return response 
+
+@admin_blueprint.route("/admin/download/<int:dataset_id>/user/<int:user_id>")
+def download_user_labels(dataset_id, user_id):
+    user = User.query.filter_by(id=user_id).first()
+    username = "_".join([user.firstname, user.lastname])
+    annotations = Annotation.query.filter_by(dataset_id=dataset_id, user_id=user_id).all()
+    label_arr = list()
+    for i in annotations:
+        label_arr.append(json.loads(i.annotations))
+    def generate():
+        data = StringIO()
+        w = csv.writer(data)
+        #write header
+        w.writerow(("What is the quality of the picture?", 
+        "Is the quality of the picture good enough to make a diagnosis?", 
+        "Is SCJ fully visible",
+        "What is the VIA assessment?",
+        "What is the size of lesion (propotion of cervix area involved)?"))
+        yield data.getvalue()
+        data.seek(0)
+        data.truncate(0)
+
+        # write each log item
+        for item in label_arr:
+            w.writerow((
+                item["option1"]["answer"],
+                item["option2"]["answer"],
+                item["option3"]["answer"],
+                item["option4"]["answer"],
+                item["option5"]["answer"],
+            ))
+            yield data.getvalue()
+            data.seek(0)
+            data.truncate(0)
+
+    headers = Headers()
+    headers.set('Content-Disposition', 'attachment', filename=f'{username}_labels.csv')
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype="text/csv", headers=headers
+    )
 
 allowed_extensions = set(['image/jpeg', 'image/png', 'jpeg'])
 uploads_dir = os.path.join(os.path.dirname(app.__file__), os.environ.get("UPLOAD_FOLDER"))

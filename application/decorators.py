@@ -20,7 +20,7 @@ def permission_required():
                         abort(401, "Not authorized" + user_id + "!= "+request.headers.get("user_id"))
                 except Exception as e:
                     abort(401, e)
-            if not request.headers.get("is_admin"):
+            if not (request.headers.get("is_admin") or request.headers.get("project_admin")):
                 abort(403)
             return f(*args, **kwargs)
         return __permission_required
