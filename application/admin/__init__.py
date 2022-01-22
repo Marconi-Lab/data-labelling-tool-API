@@ -530,6 +530,11 @@ def user():
         dataset_count = assignments.count()
         record_count = Image.query.filter_by(labelled_by=user.id).count()
         datasets = list()
+        if user.firstname and user.lastname:
+            username = user.firstname + " "+user.lastname
+        else:
+            username = user.username
+        
         if user.site:
             site = user.site
         else:
@@ -544,7 +549,7 @@ def user():
             datasets.append(dataset)
         obj = {
             "id": user.id,
-            "username": user.firstname + " " + user.lastname,
+            "username": username,
             "site": site,
             "country": user.country,
             "gender": user.gender,
