@@ -758,13 +758,15 @@ def download_user_labels(dataset_id, user_id):
     username = "_".join([user.firstname, user.lastname])
     annotations = Annotation.query.filter_by(dataset_id=dataset_id, user_id=user_id).all()
     label_arr = list()
+    image_names = list()
     for i in annotations:
         label_arr.append(json.loads(i.annotations))
+        image_names.append(Image.query.filter_by(id=i.image_id).first().name.split("_")[-1])
     def generate():
         data = StringIO()
         w = csv.writer(data)
         #write header
-        w.writerow(("What is the quality of the picture?", 
+        w.writerow(("image","What is the quality of the picture?", 
         "Is the quality of the picture good enough to make a diagnosis?", 
         "Is SCJ fully visible",
         "What is the VIA assessment?",
@@ -774,8 +776,9 @@ def download_user_labels(dataset_id, user_id):
         data.truncate(0)
 
         # write each log item
-        for item in label_arr:
+        for i,item in enumerate(label_arr):
             w.writerow((
+                image_names[i],
                 item["option1"]["answer"],
                 item["option2"]["answer"],
                 item["option3"]["answer"],
@@ -814,7 +817,7 @@ def upload_images(item_id):
             if image and allowed_file(image.content_type):
                 image_name = secure_filename(image.filename)
                 image = Img.open(io.BytesIO(image.stream.read()))
-                #                 image = image.resize((1024, 1024), Img.ANTIALIAS)
+                # image = image.resize((1024, 1024), Img.ANTIALIAS)
                 image.save(os.path.join(uploads_dir, image_name))
                 image_url = url_for(os.environ.get("UPLOAD_FOLDER"), filename=image_name, _external=True)
                 image_upload = Image(name=image_name, image_URL=image_url)
