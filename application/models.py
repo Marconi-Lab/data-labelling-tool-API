@@ -119,7 +119,7 @@ class User(db.Model):
     description = db.Column(db.String(500), default="description")
     experience = db.Column(db.Integer, default="0")
     is_admin = db.Column(db.String)
-    project_id = db.Column(db.Integer, db.ForeignKey(Project.id), default=None)
+    project_id = db.Column(db.Integer, db.ForeignKey(Project.id), default=1)
     project_admin = db.Column(db.String, default="")
     site = db.Column(db.String, default="Not specified")
 
