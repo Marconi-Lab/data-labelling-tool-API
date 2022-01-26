@@ -19,11 +19,8 @@ def verify_email(token):
 
         user = User.query.filter_by(email=email).first()
         if user.is_verified:
-            response = jsonify({
-                "message": "Invalid input"
-            })
-            response.status_code = 422
-            return response
+            return redirect(os.getenv("FRONT_END_LOGIN"), code=302)
+
         else:
             user.is_verified = True
             user.save()
@@ -32,8 +29,10 @@ def verify_email(token):
                 <p>Please login to the <a href='https://marconimlannotator.com/administrator'>system</a>\
                      to add them to the project annotator's list.</p>", email=email)
             subject  =  "New SignUp PRESCRIP PROJECT macronimlannotator"
-            reciever = os.getenv("PROJECT_ADMIN")
-            send_email(reciever, subject, html)
+            reciever1 = os.getenv("PROJECT_ADMIN")
+            reciever2 = os.getenv("PROJECT_ADMIN2")
+            send_email(reciever1, subject, html)
+            send_email(reciever2, subject, html)
             return redirect(os.getenv("FRONT_END_LOGIN"), code=302)
 
     except Exception as e:
