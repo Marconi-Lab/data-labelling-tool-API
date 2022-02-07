@@ -14,14 +14,15 @@ from . import views
 
 @auth_blueprint.route('/confirm/<token>', methods=['GET'])
 def verify_email(token):
+    print(f"Verifiying token {token}")
     try:
         email = confirm_verification_token(token)
-
+        print(f"Verifying: {email}")
         user = User.query.filter_by(email=email).first()
-        if user.is_verified:
+        if user and user.is_verified:
             return redirect(os.getenv("FRONT_END_LOGIN"), code=302)
 
-        else:
+        elif user and not user.is_verified:
             user.is_verified = True
             user.save()
             # send email to admin
@@ -34,7 +35,11 @@ def verify_email(token):
             send_email(reciever1, subject, html)
             send_email(reciever2, subject, html)
             return redirect(os.getenv("FRONT_END_LOGIN"), code=302)
+        else:
+            return redirect("https://marconimlannotator.com/signup", code=302)
 
     except Exception as e:
         print(e)
-        return e
+        response =jsonify({"msg": str(e)})
+        response.status_code = 500
+        return response
