@@ -726,7 +726,7 @@ def manipulate_project_uses(project_id):
         user_arr = list()
         for user in users:
             user_id = user.id
-            username = " ".join([user.firstname, user.lastname])
+            username = " ".join([user.firstname if user.firstname != None else "", user.lastname if user.lastname != None else ""])
             country = user.country
             street = user.street
             city  = user.city
