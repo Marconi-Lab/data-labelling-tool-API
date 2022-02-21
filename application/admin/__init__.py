@@ -1045,15 +1045,16 @@ def dashboard_onesite_stats(site):
     except Exception as e:
         print (e)
 
-@admin_blueprint.route("/admin/download/<int:dataset_id>/")
-def download_dataset_labels(dataset_id, user_id):
+@admin_blueprint.route("/admin/download/prescrip/<int:dataset_id>")
+def download_dataset_labels(dataset_id):
     # get all project users
-    users = User.query.filter_by(id=user_id, project_id=1).all()
+    dataset = Dataset.query.filter_by(id=dataset_id).first()
+    users = User.query.filter_by(project_id=1).all()
     label_arr = list()
     image_names = list()
     for user in users:
         username = "_".join([user.firstname, user.lastname])
-        annotations = Annotation.query.filter_by(dataset_id=dataset_id, user_id=user_id).all()
+        annotations = Annotation.query.filter_by(dataset_id=dataset_id, user_id=user.id).all()
         for i in annotations:
             label_arr.append(json.loads(i.annotations))
             image_names.append(username+"_"+Image.query.filter_by(id=i.image_id).first().name.split("_")[-1])
@@ -1080,21 +1081,15 @@ def download_dataset_labels(dataset_id, user_id):
                 item["option4"]["answer"],
                 item["option5"]["answer"],
             ))
+            # print (datacd )
             yield data.getvalue()
             data.seek(0)
             data.truncate(0)
 
     headers = Headers()
-    headers.set('Content-Disposition', 'attachment', filename=f'{username}_labels.csv')
+    headers.set('Content-Disposition', 'attachment', filename=f'{dataset.name}_labels.csv')
 
     return Response(
         stream_with_context(generate()),
         mimetype="text/csv", headers=headers
     )
-
-allowed_extensions = set(['image/jpeg', 'image/png', 'jpeg'])
-uploads_dir = os.path.join(os.path.dirname(app.__file__), os.environ.get("UPLOAD_FOLDER"))
-
-
-def allowed_file(filename):
-    return filename in allowed_extensions
