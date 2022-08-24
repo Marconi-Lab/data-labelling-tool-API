@@ -1044,3 +1044,52 @@ def dashboard_onesite_stats(site):
         return response
     except Exception as e:
         print (e)
+
+@admin_blueprint.route("/admin/download/prescrip/<int:dataset_id>")
+def download_dataset_labels(dataset_id):
+    # get all project users
+    dataset = Dataset.query.filter_by(id=dataset_id).first()
+    users = User.query.filter_by(project_id=1).all()
+    label_arr = list()
+    image_names = list()
+    for user in users:
+        username = "_".join([user.firstname, user.lastname])
+        annotations = Annotation.query.filter_by(dataset_id=dataset_id, user_id=user.id).all()
+        for i in annotations:
+            label_arr.append(json.loads(i.annotations))
+            image_names.append(username+"_"+Image.query.filter_by(id=i.image_id).first().name.split("_")[-1])
+    def generate():
+        data = StringIO()
+        w = csv.writer(data)
+        #write header
+        w.writerow(("image","What is the quality of the picture?", 
+        "Is the quality of the picture good enough to make a diagnosis?", 
+        "Is SCJ fully visible",
+        "What is the VIA assessment?",
+        "What is the size of lesion (propotion of cervix area involved)?"))
+        yield data.getvalue()
+        data.seek(0)
+        data.truncate(0)
+
+        # write each log item
+        for i,item in enumerate(label_arr):
+            w.writerow((
+                image_names[i],
+                item["option1"]["answer"],
+                item["option2"]["answer"],
+                item["option3"]["answer"],
+                item["option4"]["answer"],
+                item["option5"]["answer"],
+            ))
+            # print (datacd )
+            yield data.getvalue()
+            data.seek(0)
+            data.truncate(0)
+
+    headers = Headers()
+    headers.set('Content-Disposition', 'attachment', filename=f'{dataset.name}_labels.csv')
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype="text/csv", headers=headers
+    )
