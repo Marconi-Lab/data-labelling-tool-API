@@ -295,26 +295,30 @@ def get_random_unlabelled_image(dataset_id):
         images.append({"id": image.id, "image": image.image_URL})
         annotation = Annotation.query.filter_by(image_id=image.id).first()
         labels.append(
-                {
-                    "id": image.id,
-                    "annotations": {
-                        "option1": {"question": "Is SCJ fully visible?", "answer": ""},
-                        "option2": {
-                            "question": "Is the quality of the picture good enough to make a diagnosis?",
-                            "answer": "",
-                        },
-                        "option3": {"question": "Is SCJ fully visible?", "answer": ""},
-                        "option4": {
-                            "question": "What is the VIA assessment?",
-                            "answer": "",
-                        },
-                        "option5": {
-                            "question": "What is the size of lesion (propotion of cervix area involved)?",
-                            "answer": "",
-                        },
+            {
+                "id": image.id,
+                "annotations": {
+                    # "option1": {"question": "Is SCJ fully visible?", "answer": ""},
+                    "option1": {
+                        "question": "Is the quality of the picture good enough to make a diagnosis?",
+                        "answer": "",
                     },
-                }
-            )
+                    # "option3": {"question": "Is SCJ fully visible?", "answer": ""},
+                    "option2": {
+                        "question": "What is the VIA assessment?",
+                        "answer": "",
+                    },
+                    "option3": {
+                        "question": " What is the lesion location? (None if not applicable).",
+                        "answer": "",
+                    },
+                    "option4": {
+                        "question": "What is the size of lesion (propotion of cervix area involved)?",
+                        "answer": "",
+                    },
+                },
+            }
+        )
 
     for image in labelled_images:
 
